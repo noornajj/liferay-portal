@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.servlet.taglib.ui;
 
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 
 import java.io.IOException;
 
@@ -88,6 +89,18 @@ public interface FormNavigatorEntry<T> {
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
 		throws IOException;
+
+	/**
+	 * Returns <code>true</code> if the form navigator entry should be
+	 * displayed.
+	 *
+	 * @param  themeDisplay the current theme display
+	 * @param  formModelBean the bean edited by the form navigator, or
+	 *         <code>null</code>
+	 * @return <code>true</code> if the form navigator entry should be
+	 *         displayed; <code>false</code> otherwise
+	 */
+	public boolean isVisible(ThemeDisplay themeDisplay, T formModelBean);
 
 	/**
 	 * Returns <code>true</code> if the form navigator entry should be

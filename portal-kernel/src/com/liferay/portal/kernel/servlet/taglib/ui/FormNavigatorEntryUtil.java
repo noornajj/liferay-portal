@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.servlet.taglib.ui;
 
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
@@ -37,6 +38,18 @@ import java.util.Optional;
  * @author Sergio González
  */
 public class FormNavigatorEntryUtil {
+
+	public static <T> List<FormNavigatorEntry<T>> getFormNavigatorEntries(
+		String formNavigatorId, String categoryKey, ThemeDisplay themeDisplay,
+		T formModelBean) {
+
+		List<FormNavigatorEntry<T>> formNavigatorEntries =
+			_getFormNavigatorEntries(
+				formNavigatorId, categoryKey, formModelBean);
+
+		return filterVisibleFormNavigatorEntries(
+			formNavigatorEntries, themeDisplay, formModelBean);
+	}
 
 	public static <T> List<FormNavigatorEntry<T>> getFormNavigatorEntries(
 		String formNavigatorId, String categoryKey, User user,
@@ -112,6 +125,23 @@ public class FormNavigatorEntryUtil {
 		}
 
 		return labels.toArray(new String[0]);
+	}
+
+	protected static <T> List<FormNavigatorEntry<T>>
+		filterVisibleFormNavigatorEntries(
+			List<FormNavigatorEntry<T>> formNavigatorEntries,
+			ThemeDisplay themeDisplay, T formModelBean) {
+
+		List<FormNavigatorEntry<T>> filteredFormNavigatorEntries =
+			new ArrayList<>();
+
+		for (FormNavigatorEntry<T> formNavigatorEntry : formNavigatorEntries) {
+			if (formNavigatorEntry.isVisible(themeDisplay, formModelBean)) {
+				filteredFormNavigatorEntries.add(formNavigatorEntry);
+			}
+		}
+
+		return filteredFormNavigatorEntries;
 	}
 
 	protected static <T> List<FormNavigatorEntry<T>>

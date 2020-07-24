@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.servlet.taglib.ui.BaseJSPFormNavigatorEntry;
 import com.liferay.portal.kernel.servlet.taglib.ui.FormNavigatorConstants;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.JavaConstants;
 
 import java.util.Locale;
@@ -57,6 +58,25 @@ public abstract class BaseJournalFormNavigatorEntry
 			ServiceContextThreadLocal.getServiceContext();
 
 		HttpServletRequest httpServletRequest = serviceContext.getRequest();
+
+		PortletRequest portletRequest =
+			(PortletRequest)httpServletRequest.getAttribute(
+				JavaConstants.JAVAX_PORTLET_REQUEST);
+
+		long classNameId = BeanParamUtil.getLong(
+			article, portletRequest, "classNameId");
+
+		if (classNameId > JournalArticleConstants.CLASS_NAME_ID_DEFAULT) {
+			return true;
+		}
+
+		return false;
+	}
+
+	protected boolean isEditDefaultValues(
+		ThemeDisplay themeDisplay, JournalArticle article) {
+
+		HttpServletRequest httpServletRequest = themeDisplay.getRequest();
 
 		PortletRequest portletRequest =
 			(PortletRequest)httpServletRequest.getAttribute(

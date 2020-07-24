@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.servlet.taglib.ui;
 
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 
 import java.io.IOException;
 
@@ -46,6 +47,11 @@ public abstract class BaseFormNavigatorEntry<T>
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
 		throws IOException;
+
+	@Override
+	public boolean isVisible(ThemeDisplay themeDisplay, T formModelBean) {
+		return true;
+	}
 
 	@Override
 	public boolean isVisible(User user, T formModelBean) {

@@ -160,7 +160,7 @@ public class FormNavigatorTag extends IncludeTag {
 		for (String categoryKey : FormNavigatorCategoryUtil.getKeys(_id)) {
 			List<FormNavigatorEntry<Object>> formNavigatorEntries =
 				FormNavigatorEntryUtil.getFormNavigatorEntries(
-					_id, categoryKey, themeDisplay.getUser(), _formModelBean);
+					_id, categoryKey, themeDisplay, _formModelBean);
 
 			if (ListUtil.isNotEmpty(formNavigatorEntries)) {
 				categoryKeys.add(categoryKey);
