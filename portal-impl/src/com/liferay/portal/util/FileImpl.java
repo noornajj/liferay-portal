@@ -255,6 +255,17 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	}
 
 	@Override
+	public File createTempFile(byte[] bytes, String extension)
+		throws IOException {
+
+		File file = createTempFile(extension);
+
+		write(file, bytes, false);
+
+		return file;
+	}
+
+	@Override
 	public File createTempFile(InputStream inputStream) throws IOException {
 		File file = createTempFile(StringPool.BLANK);
 

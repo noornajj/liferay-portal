@@ -74,6 +74,11 @@ public class MockFile implements com.liferay.portal.kernel.util.File {
 	}
 
 	@Override
+	public File createTempFile(byte[] bytes, String extension) {
+		return null;
+	}
+
+	@Override
 	public File createTempFile(InputStream inputStream) {
 		return null;
 	}

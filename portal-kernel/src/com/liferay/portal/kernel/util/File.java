@@ -54,6 +54,9 @@ public interface File {
 
 	public java.io.File createTempFile(byte[] bytes) throws IOException;
 
+	public java.io.File createTempFile(byte[] bytes, String extension)
+		throws IOException;
+
 	public java.io.File createTempFile(InputStream inputStream)
 		throws IOException;
 

@@ -84,6 +84,12 @@ public class FileUtil {
 		return getFile().createTempFile(bytes);
 	}
 
+	public static File createTempFile(byte[] bytes, String extension)
+		throws IOException {
+
+		return getFile().createTempFile(bytes, extension);
+	}
+
 	public static File createTempFile(InputStream inputStream)
 		throws IOException {
 
