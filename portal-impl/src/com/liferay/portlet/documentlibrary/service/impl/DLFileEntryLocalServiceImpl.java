@@ -1655,14 +1655,19 @@ public class DLFileEntryLocalServiceImpl
 			(dlFileEntry.getFileEntryTypeId() !=
 				DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT)) {
 
-			DLFileEntryMetadata dlFileEntryMetadata =
-				dlFileEntryMetadataPersistence.fetchByFileEntryId_Last(
-					fileEntryId, null);
-
 			DDMStructure ddmStructure = DDMStructureManagerUtil.fetchStructure(
-				dlFileEntryMetadata.getDDMStructureId());
+				dlFileEntry.getGroupId(),
+				classNameLocalService.getClassNameId(DLFileEntryMetadata.class),
+				DLUtil.getDDMStructureKey(dlFileEntry.getDLFileEntryType()));
 
 			if (ddmStructure != null) {
+				DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
+
+				DLFileEntryMetadata dlFileEntryMetadata =
+					dlFileEntryMetadataPersistence.fetchByD_F(
+						ddmStructure.getStructureId(),
+						dlFileVersion.getFileVersionId());
+
 				DDMStructureLinkManagerUtil.deleteStructureLink(
 					classNameLocalService.getClassNameId(
 						DLFileEntryMetadata.class),
