@@ -179,25 +179,15 @@ public class VelocityManager extends BaseTemplateManager {
 				"liferay." + VelocityEngine.RESOURCE_LOADER + ".class",
 				LiferayResourceLoader.class.getName());
 
-			if (cacheEnabled) {
-				PortalCache<TemplateResource, org.apache.velocity.Template>
+			PortalCache<TemplateResource, org.apache.velocity.Template>
 					portalCache =
-						(PortalCache
-							<TemplateResource, org.apache.velocity.Template>)
-								_singleVMPool.getPortalCache(
-									StringBundler.concat(
-										TemplateResource.class.getName(),
-										StringPool.POUND,
-										TemplateConstants.LANG_TYPE_VM));
+						_velocityTemplateResourceCache.
+								getSecondLevelPortalCache();
 
-				extendedProperties.setProperty(
-					"liferay." + VelocityEngine.RESOURCE_LOADER +
-						"portal.cache",
-					portalCache);
-
-				_velocityTemplateResourceCache.setSecondLevelPortalCache(
-					portalCache);
-			}
+			extendedProperties.setProperty(
+				"liferay." + VelocityEngine.RESOURCE_LOADER +
+					"portal.cache",
+				portalCache);
 
 			extendedProperties.setProperty(
 				VelocityEngine.RESOURCE_MANAGER_CLASS,
