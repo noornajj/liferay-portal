@@ -14,14 +14,28 @@
 
 package com.liferay.layout.internal.search.spi.model.index.contributor;
 
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.layout.internal.search.util.LayoutCrawler;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.search.BooleanClause;
+import com.liferay.portal.kernel.search.BooleanClauseFactoryUtil;
+import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.search.Query;
+import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.search.SearchException;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +45,7 @@ import com.liferay.portal.search.spi.model.index.contributor.ModelDocumentContri
 import java.util.Locale;
 import java.util.Set;
 
+import com.liferay.staging.StagingGroupHelper;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -60,7 +75,6 @@ public class LayoutModelDocumentContributor
 		document.addLocalizedText(Field.NAME, layout.getNameMap());
 		document.addText(
 			"privateLayout", String.valueOf(layout.isPrivateLayout()));
-		document.addKeyword(Field.STATUS, _getStatus(layout));
 		document.addText(Field.TYPE, layout.getType());
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
@@ -87,6 +101,8 @@ public class LayoutModelDocumentContributor
 			String content = _html.stripHtml(
 				_getWrapper(_layoutCrawler.getLayoutContent(layout, locale)));
 
+			content = content.concat(_getStagedContent(layout, locale));
+
 			if (Validator.isNull(content)) {
 				continue;
 			}
@@ -96,25 +112,76 @@ public class LayoutModelDocumentContributor
 		}
 	}
 
-	private int _getStatus(Layout layout) {
-		if (!layout.isTypeContent()) {
-			return WorkflowConstants.STATUS_APPROVED;
+	private String _getStagedContent(Layout layout, Locale locale) {
+		Group group = null;
+
+		Group stagingGroup = null;
+
+		try {
+			group = GroupLocalServiceUtil.getGroup(layout.getGroupId());
+		}
+		catch (PortalException e) {
+			e.printStackTrace();
 		}
 
-		Layout draftLayout = layout.fetchDraftLayout();
-
-		boolean published = false;
-
-		if (draftLayout != null) {
-			published = GetterUtil.getBoolean(
-				draftLayout.getTypeSettingsProperty("published"));
+		if (ExportImportThreadLocal.isInitialLayoutStagingInProcess()) {
+			stagingGroup = _stagingGroupHelper.fetchLiveGroup(group);
+		}
+		else if (group.isStagingGroup()) {
+			stagingGroup = group;
+		}
+		else {
+			return StringPool.BLANK;
 		}
 
-		if (published) {
-			return WorkflowConstants.STATUS_APPROVED;
+		layout = LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
+			layout.getUuid(), stagingGroup.getGroupId(),
+			layout.isPrivateLayout());
+
+		SearchContext searchContext = new SearchContext();
+
+		BooleanClause<Query> booleanClause = BooleanClauseFactoryUtil.create(
+			Field.ENTRY_CLASS_PK, String.valueOf(layout.getPlid()),
+			BooleanClauseOccur.MUST.getName());
+
+		searchContext.setBooleanClauses(new BooleanClause[]
+
+			{
+				booleanClause
+			});
+
+		searchContext.setCompanyId(stagingGroup.getCompanyId());
+		searchContext.setEntryClassNames(new String[]
+
+			{
+				Layout.class.getName()
+			});
+		searchContext.setGroupIds(new long[]
+
+			{
+				stagingGroup.getGroupId()
+			});
+
+		Indexer<Layout> indexer = IndexerRegistryUtil.getIndexer(Layout.class);
+
+		Hits hits = null;
+		try {
+			hits = indexer.search(searchContext);
+		}
+		catch (SearchException e) {
+			e.printStackTrace();
 		}
 
-		return WorkflowConstants.STATUS_DRAFT;
+		Document[] documents = hits.getDocs();
+
+
+		if (documents.length != 1) {
+			return StringPool.BLANK;
+		}
+
+		Document document = documents[0];
+
+		return document.get(Field.getLocalizedName(locale, Field.CONTENT));
 	}
 
 	private String _getWrapper(String layoutContent) {
@@ -139,5 +206,8 @@ public class LayoutModelDocumentContributor
 	@Reference
 	private LayoutPageTemplateStructureLocalService
 		_layoutPageTemplateStructureLocalService;
+
+	@Reference
+	private StagingGroupHelper _stagingGroupHelper;
 
 }

@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.servlet.PortalSessionThreadLocal;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -29,20 +30,30 @@ import java.net.InetAddress;
 
 import java.util.Locale;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.util.EntityUtils;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+
+import javax.servlet.http.HttpSession;
 
 /**
  * @author Pavel Savinov
@@ -76,6 +87,20 @@ public class LayoutCrawler {
 			themeDisplay.setServerPort(_portal.getPortalServerPort(false));
 			themeDisplay.setSiteGroupId(layout.getGroupId());
 
+			HttpSession httpSession = PortalSessionThreadLocal.getHttpSession();
+			int port = _portal.getPortalServerPort(false);
+			HttpHost httpHost = new HttpHost(
+				inetAddress.getHostName(), port, "http");
+			CredentialsProvider credentialsProvider =
+				new BasicCredentialsProvider();
+			credentialsProvider.setCredentials(AuthScope.ANY,
+				new UsernamePasswordCredentials(
+					(String)httpSession.getAttribute("j_username"),
+					(String)httpSession.getAttribute("j_password")));
+
+			AuthCache authCache = new BasicAuthCache();
+			authCache.put(httpHost, new BasicScheme());
+
 			HttpGet httpGet = new HttpGet(
 				_portal.getLayoutFullURL(layout, themeDisplay));
 
@@ -91,6 +116,8 @@ public class LayoutCrawler {
 			cookieStore.addCookie(basicClientCookie);
 
 			httpClientContext.setCookieStore(cookieStore);
+			httpClientContext.setCredentialsProvider(credentialsProvider);
+//			httpClientContext.setAuthCache(authCache);
 
 			HttpResponse httpResponse = httpClient.execute(
 				httpGet, httpClientContext);
