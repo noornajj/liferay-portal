@@ -1,23 +1,8 @@
-/**
- * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation; either version 2.1 of the License, or (at your option)
- * any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- */
-
-package com.liferay.portal.service.impl;
+package com.liferay.layout.internal.service;
 
 import com.liferay.counter.kernel.service.CounterLocalService;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.LayoutFriendlyURLException;
 import com.liferay.portal.kernel.exception.LayoutFriendlyURLsException;
 import com.liferay.portal.kernel.exception.LayoutNameException;
@@ -44,6 +29,7 @@ import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiServic
 import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
 import com.liferay.portal.kernel.portlet.FriendlyURLResolverRegistryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.LayoutLocalServiceHelper;
 import com.liferay.portal.kernel.service.LayoutRevisionLocalService;
 import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
@@ -73,11 +59,17 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Raymond Augé
  */
-public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
+@Component(service = LayoutLocalServiceHelper.class)
+public class LayoutLocalServiceHelperImpl
+	implements IdentifiableOSGiService, LayoutLocalServiceHelper {
 
+	@Override
 	public String getFriendlyURL(
 			long groupId, boolean privateLayout, long layoutId, String name,
 			String friendlyURL)
@@ -87,6 +79,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 			groupId, privateLayout, layoutId, name, friendlyURL, null);
 	}
 
+	@Override
 	public String getFriendlyURL(
 			long groupId, boolean privateLayout, long layoutId, String name,
 			String friendlyURL, String languageId)
@@ -126,10 +119,12 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		return friendlyURL;
 	}
 
+	@Override
 	public String getFriendlyURL(String friendlyURL) {
 		return FriendlyURLNormalizerUtil.normalizeWithEncoding(friendlyURL);
 	}
 
+	@Override
 	public Map<Locale, String> getFriendlyURLMap(
 			long groupId, boolean privateLayout, long layoutId, String name,
 			Map<Locale, String> friendlyURLMap)
@@ -163,6 +158,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		return newFriendlyURLMap;
 	}
 
+	@Override
 	public int getNextPriority(
 		long groupId, boolean privateLayout, long parentLayoutId,
 		String sourcePrototypeLayoutUuid, int defaultPriority) {
@@ -171,7 +167,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 			int priority = defaultPriority;
 
 			if (priority < 0) {
-				Layout layout = layoutPersistence.findByG_P_P_First(
+				Layout layout = _layoutPersistence.findByG_P_P_First(
 					groupId, privateLayout, parentLayoutId,
 					new LayoutPriorityComparator(false));
 
@@ -181,7 +177,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 			if ((priority < _PRIORITY_BUFFER) &&
 				Validator.isNull(sourcePrototypeLayoutUuid)) {
 
-				LayoutSet layoutSet = layoutSetPersistence.fetchByG_P(
+				LayoutSet layoutSet = _layoutSetPersistence.fetchByG_P(
 					groupId, privateLayout);
 
 				if (Validator.isNotNull(
@@ -211,6 +207,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		return LayoutLocalServiceHelper.class.getName();
 	}
 
+	@Override
 	public long getParentLayoutId(
 		long groupId, boolean privateLayout, long parentLayoutId) {
 
@@ -218,7 +215,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 
 			// Ensure parent layout exists
 
-			Layout parentLayout = layoutPersistence.fetchByG_P_L(
+			Layout parentLayout = _layoutPersistence.fetchByG_P_L(
 				groupId, privateLayout, parentLayoutId);
 
 			if (parentLayout == null) {
@@ -229,21 +226,23 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		return parentLayoutId;
 	}
 
+	@Override
 	public long getUniquePlid() {
-		long plid = counterLocalService.increment(Layout.class.getName());
+		long plid = _counterLocalService.increment(Layout.class.getName());
 
-		while (layoutRevisionLocalService.fetchLayoutRevision(plid) != null) {
-			plid = counterLocalService.increment(Layout.class.getName());
+		while (_layoutRevisionLocalService.fetchLayoutRevision(plid) != null) {
+			plid = _counterLocalService.increment(Layout.class.getName());
 		}
 
 		return plid;
 	}
 
+	@Override
 	public boolean hasLayoutSetPrototypeLayout(
 			LayoutSetPrototype layoutSetPrototype, String layoutUuid)
 		throws PortalException {
 
-		Layout layout = layoutPersistence.fetchByUUID_G_P(
+		Layout layout = _layoutPersistence.fetchByUUID_G_P(
 			layoutUuid, layoutSetPrototype.getGroupId(), true);
 
 		if (layout != null) {
@@ -253,6 +252,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		return false;
 	}
 
+	@Override
 	public void validate(
 			long groupId, boolean privateLayout, long layoutId,
 			long parentLayoutId, String name, String type, boolean hidden,
@@ -264,7 +264,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		boolean firstLayout = false;
 
 		if (parentLayoutId == LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) {
-			List<Layout> layouts = layoutPersistence.findByG_P_P(
+			List<Layout> layouts = _layoutPersistence.findByG_P_P(
 				groupId, privateLayout, parentLayoutId, 0, 1);
 
 			if (layouts.isEmpty()) {
@@ -285,9 +285,9 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 			// Layout cannot become a child of a layout that is not sortable
 			// because it is linked to a layout set prototype
 
-			Layout layout = layoutPersistence.fetchByG_P_L(
+			Layout layout = _layoutPersistence.fetchByG_P_L(
 				groupId, privateLayout, layoutId);
-			Layout parentLayout = layoutPersistence.findByG_P_L(
+			Layout parentLayout = _layoutPersistence.findByG_P_L(
 				groupId, privateLayout, parentLayoutId);
 
 			if (((layout == null) ||
@@ -317,7 +317,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		}
 
 		if (!layoutTypeController.isParentable()) {
-			int count = layoutPersistence.countByG_P_P(
+			int count = _layoutPersistence.countByG_P_P(
 				groupId, privateLayout, layoutId);
 
 			if (count > 0) {
@@ -329,6 +329,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		validateFriendlyURLs(groupId, privateLayout, layoutId, friendlyURLMap);
 	}
 
+	@Override
 	public void validateFirstLayout(Layout layout) throws PortalException {
 		Group group = layout.getGroup();
 
@@ -344,6 +345,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		validateFirstLayout(layout.getType());
 	}
 
+	@Override
 	public void validateFirstLayout(String type) throws PortalException {
 		LayoutTypeController layoutTypeController =
 			LayoutTypeControllerTracker.getLayoutTypeController(type);
@@ -358,6 +360,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		}
 	}
 
+	@Override
 	public void validateFriendlyURL(
 			long groupId, boolean privateLayout, long layoutId,
 			String friendlyURL)
@@ -367,6 +370,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 			groupId, privateLayout, layoutId, friendlyURL, null);
 	}
 
+	@Override
 	public void validateFriendlyURL(
 			long groupId, boolean privateLayout, long layoutId,
 			String friendlyURL, String languageId)
@@ -383,11 +387,11 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		}
 
 		List<LayoutFriendlyURL> layoutFriendlyURLs =
-			layoutFriendlyURLPersistence.findByG_P_F(
+			_layoutFriendlyURLPersistence.findByG_P_F(
 				groupId, privateLayout, friendlyURL);
 
 		for (LayoutFriendlyURL layoutFriendlyURL : layoutFriendlyURLs) {
-			Layout layout = layoutPersistence.findByPrimaryKey(
+			Layout layout = _layoutPersistence.findByPrimaryKey(
 				layoutFriendlyURL.getPlid());
 
 			if ((layout.getLayoutId() != layoutId) ||
@@ -519,6 +523,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		}
 	}
 
+	@Override
 	public void validateFriendlyURLs(
 			long groupId, boolean privateLayout, long layoutId,
 			Map<Locale, String> friendlyURLMap)
@@ -569,6 +574,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		}
 	}
 
+	@Override
 	public void validateName(String name) throws PortalException {
 		if (Validator.isNull(name)) {
 			throw new LayoutNameException();
@@ -582,6 +588,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		}
 	}
 
+	@Override
 	public void validateName(String name, String languageId)
 		throws PortalException {
 
@@ -593,12 +600,13 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		}
 	}
 
+	@Override
 	public void validateParentLayoutId(
 			long groupId, boolean privateLayout, long layoutId,
 			long parentLayoutId)
 		throws PortalException {
 
-		Layout layout = layoutPersistence.findByG_P_L(
+		Layout layout = _layoutPersistence.findByG_P_L(
 			groupId, privateLayout, layoutId);
 
 		if (parentLayoutId == layout.getParentLayoutId()) {
@@ -613,7 +621,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 
 		// Layout cannot become a child of a layout that is not parentable
 
-		Layout parentLayout = layoutPersistence.findByG_P_L(
+		Layout parentLayout = _layoutPersistence.findByG_P_L(
 			groupId, privateLayout, parentLayoutId);
 
 		LayoutType parentLayoutType = parentLayout.getLayoutType();
@@ -648,7 +656,7 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 			return;
 		}
 
-		List<Layout> layouts = layoutPersistence.findByG_P_P(
+		List<Layout> layouts = _layoutPersistence.findByG_P_P(
 			groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, 0,
 			2);
 
@@ -679,30 +687,12 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 		Role role = RoleLocalServiceUtil.getRole(
 			layout.getCompanyId(), RoleConstants.GUEST);
 
-		return resourcePermissionLocalService.hasResourcePermission(
+		return _resourcePermissionLocalService.hasResourcePermission(
 			layout.getCompanyId(), Layout.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL,
 			String.valueOf(layout.getPlid()), role.getRoleId(),
 			ActionKeys.VIEW);
 	}
-
-	@BeanReference(type = CounterLocalService.class)
-	protected CounterLocalService counterLocalService;
-
-	@BeanReference(type = LayoutFriendlyURLPersistence.class)
-	protected LayoutFriendlyURLPersistence layoutFriendlyURLPersistence;
-
-	@BeanReference(type = LayoutPersistence.class)
-	protected LayoutPersistence layoutPersistence;
-
-	@BeanReference(type = LayoutRevisionLocalService.class)
-	protected LayoutRevisionLocalService layoutRevisionLocalService;
-
-	@BeanReference(type = LayoutSetPersistence.class)
-	protected LayoutSetPersistence layoutSetPersistence;
-
-	@BeanReference(type = ResourcePermissionLocalService.class)
-	protected ResourcePermissionLocalService resourcePermissionLocalService;
 
 	private static final String _FRIENDLY_URL_SEPARATOR_HEAD =
 		Portal.FRIENDLY_URL_SEPARATOR.substring(
@@ -711,9 +701,27 @@ public class LayoutLocalServiceHelper implements IdentifiableOSGiService {
 	private static final int _PRIORITY_BUFFER = 1000000;
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		LayoutLocalServiceHelper.class);
+		LayoutLocalServiceHelperImpl.class);
 
 	private static final Pattern _urlSeparatorPattern = Pattern.compile(
 		"/[A-Za-z]");
+
+	@Reference
+	private CounterLocalService _counterLocalService;
+
+	@Reference
+	private LayoutFriendlyURLPersistence _layoutFriendlyURLPersistence;
+
+	@Reference
+	private LayoutPersistence _layoutPersistence;
+
+	@Reference
+	private LayoutRevisionLocalService _layoutRevisionLocalService;
+
+	@Reference
+	private LayoutSetPersistence _layoutSetPersistence;
+
+	@Reference
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
 }
