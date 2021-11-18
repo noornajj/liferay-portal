@@ -27,10 +27,12 @@ import com.liferay.portal.kernel.model.LayoutStagingHandler;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.BaseLocalService;
 import com.liferay.portal.kernel.service.LayoutFriendlyURLLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.LayoutLocalServiceHelper;
 import com.liferay.portal.kernel.service.LayoutRevisionLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -66,6 +68,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.util.tracker.ServiceTracker;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -98,9 +102,11 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 				new LayoutLocalServiceStagingInvocationHandler(
 					this, aopInvocationHandler.getTarget())));
 
-		layoutLocalServiceHelper =
-			(LayoutLocalServiceHelper)_beanFactory.getBean(
-				LayoutLocalServiceHelper.class.getName());
+		_serviceTracker = new ServiceTracker(
+			SystemBundleUtil.getBundleContext(), LayoutLocalServiceHelper.class,
+			null);
+
+		_serviceTracker.open();
 	}
 
 	public void deleteLayout(
@@ -142,6 +148,10 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 		deleteLayout(layoutLocalService, layout, serviceContext);
 	}
 
+	public void destroy() {
+		_serviceTracker.close();
+	}
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		_beanFactory = beanFactory;
@@ -160,23 +170,25 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 
 		// Layout
 
-		parentLayoutId = layoutLocalServiceHelper.getParentLayoutId(
+		_layoutLocalServiceHelper = _serviceTracker.getService();
+
+		parentLayoutId = _layoutLocalServiceHelper.getParentLayoutId(
 			groupId, privateLayout, parentLayoutId);
 
 		String name = nameMap.get(LocaleUtil.getSiteDefault());
 
 		Map<Locale, String> layoutFriendlyURLMap =
-			layoutLocalServiceHelper.getFriendlyURLMap(
+			_layoutLocalServiceHelper.getFriendlyURLMap(
 				groupId, privateLayout, layoutId, name, friendlyURLMap);
 
 		String friendlyURL = layoutFriendlyURLMap.get(
 			LocaleUtil.getSiteDefault());
 
-		layoutLocalServiceHelper.validate(
+		_layoutLocalServiceHelper.validate(
 			groupId, privateLayout, layoutId, parentLayoutId, name, type,
 			hidden, layoutFriendlyURLMap, serviceContext);
 
-		layoutLocalServiceHelper.validateParentLayoutId(
+		_layoutLocalServiceHelper.validateParentLayoutId(
 			groupId, privateLayout, layoutId, parentLayoutId);
 
 		Layout layout = LayoutUtil.findByG_P_L(
@@ -203,7 +215,7 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			serviceContext.getAssetTagNames());
 
 		if (parentLayoutId != layout.getParentLayoutId()) {
-			int priority = layoutLocalServiceHelper.getNextPriority(
+			int priority = _layoutLocalServiceHelper.getNextPriority(
 				groupId, privateLayout, parentLayoutId,
 				layout.getSourcePrototypeLayoutUuid(), -1);
 
@@ -402,7 +414,9 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			return layoutLocalService.updateName(layout, name, languageId);
 		}
 
-		layoutLocalServiceHelper.validateName(name, languageId);
+		_layoutLocalServiceHelper = _serviceTracker.getService();
+
+		_layoutLocalServiceHelper.validateName(name, languageId);
 
 		layout.setName(name, LocaleUtil.fromLanguageId(languageId));
 
@@ -635,8 +649,6 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 		return returnValue;
 	}
 
-	protected LayoutLocalServiceHelper layoutLocalServiceHelper;
-
 	private static final Class<?>[] _GET_LAYOUTS_TYPES = {
 		Long.TYPE, Boolean.TYPE, Long.TYPE
 	};
@@ -657,6 +669,9 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 				"updateLayout", "updateLookAndFeel", "updateName"));
 
 	private BeanFactory _beanFactory;
+	private LayoutLocalServiceHelper _layoutLocalServiceHelper;
+	private ServiceTracker<LayoutLocalServiceHelper, LayoutLocalServiceHelper>
+		_serviceTracker;
 
 	private class LayoutLocalServiceStagingInvocationHandler
 		implements InvocationHandler {
