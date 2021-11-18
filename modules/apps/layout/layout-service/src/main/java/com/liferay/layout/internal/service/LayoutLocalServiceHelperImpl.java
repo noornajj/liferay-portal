@@ -1,6 +1,10 @@
 package com.liferay.layout.internal.service;
 
 import com.liferay.counter.kernel.service.CounterLocalService;
+import com.liferay.friendly.url.exception.DuplicateFriendlyURLEntryException;
+import com.liferay.friendly.url.model.FriendlyURLEntryLocalization;
+import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
+import com.liferay.layout.friendly.url.LayoutFriendlyURLEntryHelper;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.LayoutFriendlyURLException;
@@ -16,7 +20,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
-import com.liferay.portal.kernel.model.LayoutFriendlyURL;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
 import com.liferay.portal.kernel.model.LayoutType;
@@ -106,7 +109,16 @@ public class LayoutLocalServiceHelperImpl
 				int type = layoutFriendlyURLException.getType();
 
 				if (type == LayoutFriendlyURLException.DUPLICATE) {
-					friendlyURL = originalFriendlyURL + i;
+					Layout layout = _layoutLocalService.fetchLayout(
+						groupId, privateLayout, layoutId);
+
+					if (Validator.isNull(layout)) {
+						friendlyURL = originalFriendlyURL + i;
+					}
+					else {
+						throw new DuplicateFriendlyURLEntryException(
+							layoutFriendlyURLException.toString());
+					}
 				}
 				else {
 					friendlyURL = StringPool.SLASH + layoutId;
@@ -386,17 +398,20 @@ public class LayoutLocalServiceHelperImpl
 			throw new LayoutFriendlyURLException(exceptionType);
 		}
 
-		List<LayoutFriendlyURL> layoutFriendlyURLs =
-			_layoutFriendlyURLPersistence.findByG_P_F(
-				groupId, privateLayout, friendlyURL);
+		FriendlyURLEntryLocalization friendlyURLEntryLocalization =
+			_friendlyURLEntryLocalService.fetchFriendlyURLEntryLocalization(
+				groupId,
+				_layoutFriendlyURLEntryHelper.getClassNameId(privateLayout),
+				friendlyURL);
 
-		for (LayoutFriendlyURL layoutFriendlyURL : layoutFriendlyURLs) {
+		if (Validator.isNotNull(friendlyURLEntryLocalization)) {
 			Layout layout = _layoutPersistence.findByPrimaryKey(
-				layoutFriendlyURL.getPlid());
+				friendlyURLEntryLocalization.getClassPK());
 
 			if ((layout.getLayoutId() != layoutId) ||
 				(Validator.isNotNull(languageId) &&
-				 !languageId.equals(layoutFriendlyURL.getLanguageId()))) {
+				 !languageId.equals(
+					 friendlyURLEntryLocalization.getLanguageId()))) {
 
 				LayoutFriendlyURLException layoutFriendlyURLException =
 					new LayoutFriendlyURLException(
@@ -710,7 +725,16 @@ public class LayoutLocalServiceHelperImpl
 	private CounterLocalService _counterLocalService;
 
 	@Reference
+	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
+
+	@Reference
+	private LayoutFriendlyURLEntryHelper _layoutFriendlyURLEntryHelper;
+
+	@Reference
 	private LayoutFriendlyURLPersistence _layoutFriendlyURLPersistence;
+
+	@Reference
+	private LayoutLocalService _layoutLocalService;
 
 	@Reference
 	private LayoutPersistence _layoutPersistence;
