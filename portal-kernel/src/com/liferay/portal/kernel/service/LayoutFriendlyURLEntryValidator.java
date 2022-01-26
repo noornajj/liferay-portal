@@ -25,4 +25,5 @@ public interface LayoutFriendlyURLEntryValidator {
 	public void validateFriendlyURLEntry(
 			long groupId, boolean privateLayout, long classPK, String urlTitle)
 		throws PortalException;
+
 }
