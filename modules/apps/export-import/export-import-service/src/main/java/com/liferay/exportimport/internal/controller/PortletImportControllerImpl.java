@@ -604,9 +604,12 @@ public class PortletImportControllerImpl implements PortletImportController {
 						}
 					}
 
-					exportImportPortletPreferencesProcessor.
-						processImportPortletPreferences(
-							portletDataContext, jxPortletPreferences);
+					if (portletDataContext.getGroupId() == portletDataContext.getScopeGroupId() &&
+						portletDataContext.getPlid() == 0) {
+						exportImportPortletPreferencesProcessor.
+							processImportPortletPreferences(
+								portletDataContext, jxPortletPreferences);
+					}
 				}
 			}
 			finally {
