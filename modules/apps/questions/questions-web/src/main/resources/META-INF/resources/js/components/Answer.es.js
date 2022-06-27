@@ -134,8 +134,8 @@ export default withRouter(
 												answer.status !== 'pending' &&
 												comments.length === 0 && (
 													<ClayButton
-														className="btn-sm c-px-2 c-py-1 text-reset text-secondary"
-														displayType="secondary"
+														className="text-reset"
+														displayType="unstyled"
 														onClick={() =>
 															setShowNewComment(
 																true
