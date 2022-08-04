@@ -50,6 +50,7 @@ import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -363,10 +364,19 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 				LayoutStructure.of(data), targetLayout, fragmentEntryLinksMap,
 				entry.getValue());
 
-			_layoutPageTemplateStructureLocalService.
-				updateLayoutPageTemplateStructureData(
-					targetLayout.getGroupId(), targetLayout.getPlid(),
-					entry.getValue(), dataJSONObject.toString());
+			long userId = PrincipalThreadLocal.getUserId();
+
+			PrincipalThreadLocal.setName(targetLayout.getUserId());
+
+			try {
+				_layoutPageTemplateStructureLocalService.
+					updateLayoutPageTemplateStructureData(
+						targetLayout.getGroupId(), targetLayout.getPlid(),
+						entry.getValue(), dataJSONObject.toString());
+			}
+			finally {
+				PrincipalThreadLocal.setName(userId);
+			}
 		}
 	}
 
