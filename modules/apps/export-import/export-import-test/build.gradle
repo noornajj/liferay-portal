@@ -20,4 +20,5 @@ dependencies {
 	testIntegrationCompile project(":apps:xstream:xstream-configurator-api")
 	testIntegrationCompile project(":core:osgi-service-tracker-collections")
 	testIntegrationCompile project(":test:arquillian-extension-junit-bridge")
+	testIntegrationCompile project(":apps:document-library:document-library-api")
 }
