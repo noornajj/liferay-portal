@@ -27,7 +27,6 @@ import com.liferay.exportimport.kernel.lifecycle.constants.ExportImportLifecycle
 import com.liferay.exportimport.test.util.lar.BaseStagedModelDataHandlerTestCase;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
@@ -45,13 +44,17 @@ import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.xml.Document;
@@ -63,18 +66,19 @@ import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.kernel.zip.ZipWriterFactoryUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portlet.documentlibrary.constants.DLConstants;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.portlet.PortletPreferences;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.portlet.PortletPreferences;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  * @author Noor Najjar
@@ -92,9 +96,11 @@ public class LayoutPortletExportImportTest {
 		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		_companyId = TestPropsValues.getCompanyId();
+
 		_globalGroup = GroupLocalServiceUtil.getCompanyGroup(_companyId);
 
-		_ownerRole = RoleLocalServiceUtil.getRole(_companyId, RoleConstants.OWNER);
+		_ownerRole = RoleLocalServiceUtil.getRole(
+			_companyId, RoleConstants.OWNER);
 	}
 
 	@Test
@@ -106,65 +112,60 @@ public class LayoutPortletExportImportTest {
 
 		Group exportGroup = exportLayoutSetPrototype.getGroup();
 
-		////////////
-		initExport(exportGroup);
-
 		Layout exportLayout = LayoutTestUtil.addTypeContentPublishedLayout(
 			exportGroup, RandomTestUtil.randomString(), 0);
 
-		addPortletToLayoutWithGlobalScope(exportLayout);
+		_addPortletToLayoutWithGlobalScope(exportLayout);
 
 		ResourcePermissionLocalServiceUtil.addModelResourcePermissions(
-			exportGroup.getCompanyId(),
-			exportGroup.getGroupId(),
+			exportGroup.getCompanyId(), exportGroup.getGroupId(),
 			TestPropsValues.getUserId(), DLConstants.RESOURCE_NAME,
 			String.valueOf(exportGroup.getGroupId()), null, null);
 
+		_initExport(exportGroup);
+
 		Map<String, List<KeyValuePair>> permissionsMap =
-			portletDataContext.getPermissions();
+			_portletDataContext.getPermissions();
 
 		// Remove owner permissions from global site
-		removeOwnerPermissionsFromDLHomeFolderPermissionsInGlobalSite();
+
+		_removeOwnerPermissionsFromDLHomeFolderPermissionsInGlobalSite();
 
 		// Do export
 
 		StagedModelDataHandlerUtil.exportStagedModel(
-			portletDataContext, exportLayout);
+			_portletDataContext, exportLayout);
 
 		Group importGroup = GroupTestUtil.addGroup();
 
-		initImport(exportGroup, importGroup);
+		_initImport(exportGroup, importGroup);
 
-		ResourcePermissionLocalServiceUtil.addModelResourcePermissions(
-			exportGroup.getCompanyId(),
-			exportGroup.getGroupId(),
-			TestPropsValues.getUserId(), DLConstants.RESOURCE_NAME,
-			String.valueOf(exportGroup.getGroupId()), null, null);
-
-		portletDataContext.addPermissions(DLConstants.RESOURCE_NAME,
-			exportGroup.getGroupId(), permissionsMap.get(
-				DLConstants.RESOURCE_NAME +"#"+String.valueOf(exportGroup.getGroupId())));
+		_portletDataContext.addPermissions(
+			DLConstants.RESOURCE_NAME, exportGroup.getGroupId(),
+			permissionsMap.get(
+				DLConstants.RESOURCE_NAME + "#" +
+					String.valueOf(exportGroup.getGroupId())));
 
 		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
 			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
 			ExportImportLifecycleConstants.
 				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
+			_portletDataContext.getExportImportProcessId(),
 			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+				_portletDataContext));
 
-		Layout exportedLayout = (Layout)readExportedStagedModel(exportLayout);
+		Layout exportedLayout = (Layout)_readExportedStagedModel(exportLayout);
 
 		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedLayout);
+			_portletDataContext, exportedLayout);
 
 		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
 			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
 			ExportImportLifecycleConstants.
 				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
+			_portletDataContext.getExportImportProcessId(),
 			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+				_portletDataContext));
 
 		// Need to verify OWNER permissions still aren't present
 
@@ -172,14 +173,16 @@ public class LayoutPortletExportImportTest {
 			ResourcePermissionLocalServiceUtil.getResourcePermission(
 				exportLayout.getCompanyId(), DLConstants.RESOURCE_NAME,
 				ResourceConstants.SCOPE_INDIVIDUAL,
-				String.valueOf(_globalGroup.getGroupId()), _ownerRole.getRoleId());
+				String.valueOf(_globalGroup.getGroupId()),
+				_ownerRole.getRoleId());
 
 		Assert.assertEquals(0, _resourcePermission.getActionIds());
 		Assert.assertFalse(_resourcePermission.getViewActionId());
 	}
 
-	protected void addPortletToLayoutWithGlobalScope(Layout exportLayout)
+	private void _addPortletToLayoutWithGlobalScope(Layout exportLayout)
 		throws Exception {
+
 		String portletId = LayoutTestUtil.addPortletToLayout(
 			exportLayout, DLPortletKeys.DOCUMENT_LIBRARY);
 
@@ -193,17 +196,14 @@ public class LayoutPortletExportImportTest {
 
 		portletPreferences.setValue("lfrScopeLayoutUuid", "");
 
-		String languageId = LanguageUtil.getLanguageId(Locale.getDefault());
+		String languageId = LanguageUtil.getLanguageId(LocaleUtil.getDefault());
 
 		String portletTitle = portletPreferences.getValue(
 			"portletSetupTitle_" + languageId, StringPool.BLANK);
 
-		String newPortletTitle = PortalUtil.getNewPortletTitle(
-			portletTitle, null, "global");
-
 		portletPreferences.setValue(
 			"portletSetupTitle_" + languageId,
-			newPortletTitle);
+			PortalUtil.getNewPortletTitle(portletTitle, null, "global"));
 
 		portletPreferences.setValue(
 			"portletSetupUseCustomTitle", Boolean.TRUE.toString());
@@ -218,50 +218,53 @@ public class LayoutPortletExportImportTest {
 				portletId, portletPreferences);
 		}
 	}
-	protected Date getEndDate() {
-		return new Date();
-	}
 
-	protected Map<String, String[]> getParameterMap() {
+	private Map<String, String[]> _getParameterMap() {
 		return ExportImportConfigurationParameterMapFactoryUtil.
-				buildParameterMap();
+			buildParameterMap();
 	}
 
-	protected Date getStartDate() {
-		return new Date(System.currentTimeMillis() - Time.HOUR);
-	}
+	private void _initExport(Group exportGroup) throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
 
-	protected void initExport(Group exportGroup) throws Exception {
-		zipWriter = ZipWriterFactoryUtil.getZipWriter();
+		serviceContext.setAttribute("exportLAR", Boolean.TRUE);
 
-		portletDataContext =
+		ServiceContextThreadLocal.pushServiceContext(serviceContext);
+
+		_zipWriter = ZipWriterFactoryUtil.getZipWriter();
+
+		_portletDataContext =
 			PortletDataContextFactoryUtil.createExportPortletDataContext(
 				exportGroup.getCompanyId(), exportGroup.getGroupId(),
-				getParameterMap(), getStartDate(), getEndDate(), zipWriter);
+				_getParameterMap(),
+				new Date(System.currentTimeMillis() - Time.HOUR), new Date(),
+				_zipWriter);
 
-		portletDataContext.setExportImportProcessId(
+		_portletDataContext.setExportImportProcessId(
 			BaseStagedModelDataHandlerTestCase.class.getName());
 
-		rootElement = SAXReaderUtil.createElement("root");
+		_rootElement = SAXReaderUtil.createElement("root");
 
-		portletDataContext.setExportDataRootElement(rootElement);
+		_portletDataContext.setExportDataRootElement(_rootElement);
 
-		missingReferencesElement = rootElement.addElement("missing-references");
+		_missingReferencesElement = _rootElement.addElement(
+			"missing-references");
 
-		portletDataContext.setMissingReferencesElement(
-			missingReferencesElement);
+		_portletDataContext.setMissingReferencesElement(
+			_missingReferencesElement);
 
-		portletDataContext.addPortletPermissions(DLConstants.RESOURCE_NAME);
+		_portletDataContext.addPortletPermissions(DLConstants.RESOURCE_NAME);
 	}
 
-	protected void initImport(Group exportGroup, Group importGroup)
+	private void _initImport(Group exportGroup, Group importGroup)
 		throws Exception {
 
-		userIdStrategy = new TestUserIdStrategy();
+		_userIdStrategy = new TestUserIdStrategy();
 
-		zipReader = ZipReaderFactoryUtil.getZipReader(zipWriter.getFile());
+		_zipReader = ZipReaderFactoryUtil.getZipReader(_zipWriter.getFile());
 
-		String xml = zipReader.getEntryAsString("/manifest.xml");
+		String xml = _zipReader.getEntryAsString("/manifest.xml");
 
 		if (xml == null) {
 			Document document = SAXReaderUtil.createDocument();
@@ -270,56 +273,56 @@ public class LayoutPortletExportImportTest {
 
 			rootElement.addElement("header");
 
-			zipWriter.addEntry("/manifest.xml", document.asXML());
+			_zipWriter.addEntry("/manifest.xml", document.asXML());
 
-			zipReader = ZipReaderFactoryUtil.getZipReader(zipWriter.getFile());
+			_zipReader = ZipReaderFactoryUtil.getZipReader(
+				_zipWriter.getFile());
 		}
 
-		portletDataContext =
+		_portletDataContext =
 			PortletDataContextFactoryUtil.createImportPortletDataContext(
 				importGroup.getCompanyId(), importGroup.getGroupId(),
-				getParameterMap(), userIdStrategy, zipReader);
+				_getParameterMap(), _userIdStrategy, _zipReader);
 
-		portletDataContext.setExportImportProcessId(
+		_portletDataContext.setExportImportProcessId(
 			BaseStagedModelDataHandlerTestCase.class.getName());
-		portletDataContext.setImportDataRootElement(rootElement);
+		_portletDataContext.setImportDataRootElement(_rootElement);
 
-		Element missingReferencesElement = rootElement.element(
+		Element missingReferencesElement = _rootElement.element(
 			"missing-references");
 
 		if (missingReferencesElement == null) {
-			missingReferencesElement = rootElement.addElement(
+			missingReferencesElement = _rootElement.addElement(
 				"missing-references");
 		}
 
-		portletDataContext.setMissingReferencesElement(
+		_portletDataContext.setMissingReferencesElement(
 			missingReferencesElement);
 
 		Group sourceCompanyGroup = GroupLocalServiceUtil.getCompanyGroup(
 			exportGroup.getCompanyId());
 
-		portletDataContext.setSourceCompanyGroupId(
+		_portletDataContext.setSourceCompanyGroupId(
 			sourceCompanyGroup.getGroupId());
 
-		portletDataContext.setSourceCompanyId(exportGroup.getCompanyId());
-		portletDataContext.setSourceGroupId(exportGroup.getGroupId());
+		_portletDataContext.setSourceCompanyId(exportGroup.getCompanyId());
+		_portletDataContext.setSourceGroupId(exportGroup.getGroupId());
 	}
 
-	protected StagedModel readExportedStagedModel(StagedModel stagedModel) {
+	private StagedModel _readExportedStagedModel(StagedModel stagedModel) {
 		String stagedModelPath = ExportImportPathUtil.getModelPath(stagedModel);
 
-		return (StagedModel)portletDataContext.getZipEntryAsObject(
+		return (StagedModel)_portletDataContext.getZipEntryAsObject(
 			stagedModelPath);
 	}
 
-	protected void removeOwnerPermissionsFromDLHomeFolderPermissionsInGlobalSite()
-		throws PortalException {
-
+	private void _removeOwnerPermissionsFromDLHomeFolderPermissionsInGlobalSite() {
 		long globalGroupId = _globalGroup.getGroupId();
 
-		ResourcePermissionLocalServiceUtil.addResourcePermissions(
-			_globalGroup.getCompanyId(), globalGroupId, TestPropsValues.getUserId(), DLConstants.RESOURCE_NAME,
-			String.valueOf(globalGroupId), false, false, false);
+		ResourcePermissionLocalServiceUtil.addModelResourcePermissions(
+			_globalGroup.getCompanyId(), globalGroupId,
+			TestPropsValues.getUserId(), DLConstants.RESOURCE_NAME,
+			String.valueOf(globalGroupId), null, null);
 
 		_resourcePermission =
 			ResourcePermissionLocalServiceUtil.getResourcePermission(
@@ -330,26 +333,25 @@ public class LayoutPortletExportImportTest {
 		_resourcePermission.setActionIds(0);
 		_resourcePermission.setViewActionId(false);
 
-		ResourcePermissionLocalServiceUtil.updateResourcePermission(_resourcePermission);
-
+		ResourcePermissionLocalServiceUtil.updateResourcePermission(
+			_resourcePermission);
 	}
 
 	private long _companyId;
 	private Group _globalGroup;
-
+	private Element _missingReferencesElement;
 	private Role _ownerRole;
+	private PortletDataContext _portletDataContext;
 
 	@DeleteAfterTestRun
 	private ResourcePermission _resourcePermission;
 
-	protected Element missingReferencesElement;
-	protected PortletDataContext portletDataContext;
-	protected Element rootElement;
-	protected UserIdStrategy userIdStrategy;
-	protected ZipReader zipReader;
-	protected ZipWriter zipWriter;
+	private Element _rootElement;
+	private UserIdStrategy _userIdStrategy;
+	private ZipReader _zipReader;
+	private ZipWriter _zipWriter;
 
-	protected class TestUserIdStrategy implements UserIdStrategy {
+	private class TestUserIdStrategy implements UserIdStrategy {
 
 		public TestUserIdStrategy() {
 			_userId = _initializeUserId();
