@@ -19,6 +19,10 @@ describe('Liferay.Util.fetch', () => {
 	const sameOriginUrl = window.location.origin + '/o/test';
 
 	beforeEach(() => {
+		window.Liferay.ThemeDisplay = {
+			getDoAsUserIdEncoded: () => '',
+		};
+
 		fetch.mockResponse('');
 	});
 
@@ -216,6 +220,7 @@ describe('Liferay.Util.fetch', () => {
 
 		window.Liferay.ThemeDisplay = {
 			getPathContext: () => '/myportal',
+			getDoAsUserIdEncoded: () => '',
 		};
 
 		fetchWrapper(sameOriginUrl, init);

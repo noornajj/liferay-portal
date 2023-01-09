@@ -60,6 +60,7 @@ describe('Diagram', () => {
 			window.Liferay.ThemeDisplay = {
 				...window.Liferay.ThemeDisplay,
 				getPathContext: () => '',
+				getDoAsUserIdEncoded: () => '',
 			};
 
 			await act(async () => {

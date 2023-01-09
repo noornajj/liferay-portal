@@ -120,6 +120,10 @@ describe('DLVideoExternalShortcutDLFilePicker', () => {
 		});
 
 		it('sends a GET request to the server with supported URL', () => {
+			window.Liferay.ThemeDisplay = {
+				getDoAsUserIdEncoded: () => '',
+			};
+
 			expect(fetch).toHaveBeenCalledWith(
 				'http://localhost/getDLVideoExternalShortcutFieldsURL?namespacedlVideoExternalShortcutURL=https%3A%2F%2Fvideo-url.com',
 				expect.anything()
@@ -158,6 +162,10 @@ describe('DLVideoExternalShortcutDLFilePicker', () => {
 			await waitForElementToBeRemoved(() =>
 				document.querySelector('span.loading-animation')
 			);
+
+			window.Liferay.ThemeDisplay = {
+				getDoAsUserIdEncoded: () => '',
+			};
 		});
 
 		afterEach(() => {

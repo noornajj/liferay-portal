@@ -43,6 +43,7 @@ describe('DocumentLibraryOpener', () => {
 		jest.spyOn(window, 'open').mockImplementation(() => {});
 		global.Liferay.Portlet = {refresh: jest.fn()};
 		global.themeDisplay = {
+			getDoAsUserIdEncoded: () => '',
 			getPathThemeImages: jest.fn().mockImplementation(() => '//images/'),
 		};
 
