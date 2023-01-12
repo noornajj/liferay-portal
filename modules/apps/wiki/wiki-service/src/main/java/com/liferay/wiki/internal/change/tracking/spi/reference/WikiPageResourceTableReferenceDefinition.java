@@ -19,6 +19,7 @@ import com.liferay.change.tracking.spi.reference.builder.ChildTableReferenceInfo
 import com.liferay.change.tracking.spi.reference.builder.ParentTableReferenceInfoBuilder;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.wiki.model.WikiNodeTable;
+import com.liferay.wiki.model.WikiPageResource;
 import com.liferay.wiki.model.WikiPageResourceTable;
 import com.liferay.wiki.model.WikiPageTable;
 import com.liferay.wiki.service.persistence.WikiPageResourcePersistence;
@@ -38,9 +39,13 @@ public class WikiPageResourceTableReferenceDefinition
 		ChildTableReferenceInfoBuilder<WikiPageResourceTable>
 			childTableReferenceInfoBuilder) {
 
-		childTableReferenceInfoBuilder.singleColumnReference(
+		childTableReferenceInfoBuilder.assetEntryReference(
 			WikiPageResourceTable.INSTANCE.resourcePrimKey,
-			WikiPageTable.INSTANCE.resourcePrimKey);
+			WikiPageResource.class
+		).resourcePermissionReference(
+			WikiPageResourceTable.INSTANCE.resourcePrimKey,
+			WikiPageResource.class
+		);
 	}
 
 	@Override
@@ -51,7 +56,7 @@ public class WikiPageResourceTableReferenceDefinition
 		parentTableReferenceInfoBuilder.groupedModel(
 			WikiPageResourceTable.INSTANCE
 		).singleColumnReference(
-			WikiPageResourceTable.INSTANCE.nodeId, WikiNodeTable.INSTANCE.nodeId
+			WikiPageResourceTable.INSTANCE.resourcePrimKey, WikiPageTable.INSTANCE.resourcePrimKey
 		);
 	}
 
