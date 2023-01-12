@@ -18,6 +18,7 @@ import com.liferay.change.tracking.spi.reference.TableReferenceDefinition;
 import com.liferay.change.tracking.spi.reference.builder.ChildTableReferenceInfoBuilder;
 import com.liferay.change.tracking.spi.reference.builder.ParentTableReferenceInfoBuilder;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.wiki.model.WikiNode;
 import com.liferay.wiki.model.WikiNodeTable;
 import com.liferay.wiki.service.persistence.WikiNodePersistence;
 
@@ -35,6 +36,12 @@ public class WikiNodeTableReferenceDefinition
 	public void defineChildTableReferences(
 		ChildTableReferenceInfoBuilder<WikiNodeTable>
 			childTableReferenceInfoBuilder) {
+
+		childTableReferenceInfoBuilder.assetEntryReference(
+			WikiNodeTable.INSTANCE.nodeId, WikiNode.class
+		).resourcePermissionReference(
+			WikiNodeTable.INSTANCE.nodeId, WikiNode.class
+		);
 	}
 
 	@Override
