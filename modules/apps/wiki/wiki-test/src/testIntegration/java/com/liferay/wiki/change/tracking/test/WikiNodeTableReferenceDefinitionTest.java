@@ -42,7 +42,7 @@ public class WikiNodeTableReferenceDefinitionTest
 
 	@Override
 	protected CTModel<?> addCTModel() throws Exception {
-		return WikiTestUtil.addNode(group);
+		return WikiTestUtil.addNode(group.getGroupId());
 	}
 
 }

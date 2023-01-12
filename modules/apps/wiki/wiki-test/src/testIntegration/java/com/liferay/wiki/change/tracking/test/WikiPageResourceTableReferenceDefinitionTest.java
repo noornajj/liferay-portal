@@ -49,7 +49,7 @@ public class WikiPageResourceTableReferenceDefinitionTest
 	public void setUp() throws Exception {
 		super.setUp();
 
-		_wikiNode = WikiTestUtil.addNode(group);
+		_wikiNode = WikiTestUtil.addNode(group.getGroupId());
 	}
 
 	@Override
