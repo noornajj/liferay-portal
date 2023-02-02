@@ -235,6 +235,10 @@ public class CTSQLTransformerImpl implements CTSQLTransformer {
 	public String transform(String sql) {
 		long ctCollectionId = CTCollectionThreadLocal.getCTCollectionId();
 
+		if (ctCollectionId == CTCollectionThreadLocal.CT_COLLECTION_IDS_ALL) {
+			return sql;
+		}
+
 		String transformedSQL = null;
 
 		String key = _getTransformedSQLKey(ctCollectionId, sql);

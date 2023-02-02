@@ -25,6 +25,8 @@ public class CTCollectionThreadLocal {
 
 	public static final long CT_COLLECTION_ID_PRODUCTION = 0;
 
+	public static final long CT_COLLECTION_IDS_ALL = -1;
+
 	public static long getCTCollectionId() {
 		return _ctCollectionId.get();
 	}
