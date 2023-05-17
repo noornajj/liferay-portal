@@ -88,7 +88,6 @@ public class CTClosureFactoryImpl implements CTClosureFactory {
 		Map<Long, List<Long>> map = new HashMap<>();
 		Set<Node> nodes = new HashSet<>();
 
-		int x = 0;
 		for (CTEntry ctEntry :
 				_ctEntryLocalService.getCTCollectionCTEntries(ctCollectionId)) {
 
