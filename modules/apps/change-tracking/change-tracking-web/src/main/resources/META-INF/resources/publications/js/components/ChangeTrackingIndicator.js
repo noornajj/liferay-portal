@@ -60,6 +60,7 @@ export default function ChangeTrackingIndicator({
 	timelineIconClass,
 	timelineIconName,
 	timelineItemsURL,
+	timelineRenderPreviewURL,
 	title,
 	warningBody,
 	warningButton,
@@ -671,6 +672,7 @@ export default function ChangeTrackingIndicator({
 					<PublicationTimeline
 						namespace={namespace}
 						navigate={navigate}
+						renderPreviewURL={timelineRenderPreviewURL}
 						spritemap={spritemap}
 						timelineClassNameId={timelineClassNameId}
 						timelineClassPK={timelineClassPK}

@@ -675,6 +675,20 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 					"/o/change-tracking-rest/v1.0/ct-collections/history?",
 					"classNameId=", classNameId, "&classPK=", classPK));
 
+			ResourceURL renderPreviewURL =
+				(ResourceURL)_portal.getControlPanelPortletURL(
+					httpServletRequest, themeDisplay.getScopeGroup(),
+					CTPortletKeys.PUBLICATIONS, 0, 0,
+					PortletRequest.RESOURCE_PHASE);
+
+			renderPreviewURL.setResourceID(
+				"/change_tracking/get_entry_render_data");
+			renderPreviewURL.setParameter("localize", Boolean.TRUE.toString());
+			renderPreviewURL.setParameter(
+				"rightPreviewOnly", Boolean.TRUE.toString());
+
+			data.put("timelineRenderPreviewURL", renderPreviewURL.toString());
+
 			CTDisplayRenderer<?> ctDisplayRenderer =
 				_ctDisplayRendererRegistry.getCTDisplayRenderer(classNameId);
 

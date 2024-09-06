@@ -12,6 +12,7 @@ import {createPortletURL, fetch, getPortletId} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
 import TimelineDropdownMenu from './TimelineDropdownMenu';
+import TimelinePreview from './TimelinePreview';
 import {
 	WORKFLOW_STATUS_APPROVED,
 	WORKFLOW_STATUS_DRAFT,
@@ -22,6 +23,7 @@ import {
 const PublicationTimeline = ({
 	namespace,
 	navigate,
+	renderPreviewURL,
 	spritemap,
 	timelineClassNameId,
 	timelineClassPK,
@@ -30,6 +32,7 @@ const PublicationTimeline = ({
 }) => {
 	const [timelineItems, setTimelineItems] = useState([]);
 	const [loading, setLoading] = useState(true);
+	const [showTimelinePreview, setShowTimelinePreview] = useState(false);
 
 	const createMVCRenderCommandURL = (
 		ctCollectionId,
@@ -45,6 +48,25 @@ const PublicationTimeline = ({
 				...additionalParams,
 			}
 		).toString();
+	};
+
+	const getDataURL = (ctCollectionId, ctEntryId) => {
+		return (
+			renderPreviewURL +
+			'&' +
+			namespace +
+			'ctCollectionId' +
+			'=' +
+			encodeURIComponent(ctCollectionId) // and need to add ctentryid
+		);
+	};
+
+	const handleOnMouseEnter = () => {
+		setShowTimelinePreview(true);
+	};
+
+	const handleOnMouseLeave = () => {
+		setShowTimelinePreview(false);
 	};
 
 	const getEditURL = (ctCollectionId) => {
@@ -102,7 +124,10 @@ const PublicationTimeline = ({
 						}}
 					>
 						<ClayPanel.Body>
-							<ClayLayout.ContentRow>
+							<ClayLayout.ContentRow
+								onMouseEnter={handleOnMouseEnter}
+								onMouseLeave={handleOnMouseLeave}
+							>
 								<ClayLayout.ContentCol expand>
 									<div>
 										<span style={{paddingRight: '10px'}}>
@@ -216,6 +241,16 @@ const PublicationTimeline = ({
 											) : null}
 										</>
 									)}
+								</ClayLayout.ContentCol>
+
+								<ClayLayout.ContentCol>
+									{showTimelinePreview && <p>Test Preview</p>}
+
+									<TimelinePreview
+										dataURL={getDataURL(timelineItem.id)}
+										showPreview={showTimelinePreview}
+										spritemap={spritemap}
+									/>
 								</ClayLayout.ContentCol>
 							</ClayLayout.ContentRow>
 						</ClayPanel.Body>

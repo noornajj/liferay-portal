@@ -576,6 +576,32 @@ public class GetEntryRenderDataMVCResourceCommand
 				"defaultLocale", _getLocaleJSONObject(defaultLanguageId));
 		}
 
+		if (rightPreview != null) {
+			jsonObject.put("rightPreview", rightPreview);
+		}
+
+		if (rightLocalizedPreviewJSONObject != null) {
+			jsonObject.put(
+				"rightLocalizedPreview", rightLocalizedPreviewJSONObject);
+		}
+
+		if (rightLocalizedRenderJSONObject != null) {
+			jsonObject.put(
+				"rightLocalizedRender", rightLocalizedRenderJSONObject);
+		}
+
+		if (rightRender != null) {
+			jsonObject.put("rightRender", rightRender);
+		}
+
+		if (rightTitle != null) {
+			jsonObject.put("rightTitle", rightTitle);
+		}
+
+		if (ParamUtil.getBoolean(resourceRequest, "rightPreviewOnly")) {
+			return jsonObject;
+		}
+
 		if (editInProductionJSONObject != null) {
 			jsonObject.put("editInProduction", editInProductionJSONObject);
 		}
@@ -604,28 +630,6 @@ public class GetEntryRenderDataMVCResourceCommand
 
 		if (leftTitle != null) {
 			jsonObject.put("leftTitle", leftTitle);
-		}
-
-		if (rightPreview != null) {
-			jsonObject.put("rightPreview", rightPreview);
-		}
-
-		if (rightLocalizedPreviewJSONObject != null) {
-			jsonObject.put(
-				"rightLocalizedPreview", rightLocalizedPreviewJSONObject);
-		}
-
-		if (rightLocalizedRenderJSONObject != null) {
-			jsonObject.put(
-				"rightLocalizedRender", rightLocalizedRenderJSONObject);
-		}
-
-		if (rightRender != null) {
-			jsonObject.put("rightRender", rightRender);
-		}
-
-		if (rightTitle != null) {
-			jsonObject.put("rightTitle", rightTitle);
 		}
 
 		if (ctDisplayRenderer.showPreviewDiff() && (leftPreview != null) &&
