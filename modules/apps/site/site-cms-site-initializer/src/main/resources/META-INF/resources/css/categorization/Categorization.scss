@@ -8,4 +8,36 @@
 	.categorization-toolbar {
 		border-style: none;
 	}
+
+	.edit-vocabulary {
+		.categorization-vertical-nav {
+			background-color: #F7F8F9;
+			border-right: 0.5px solid;
+			border-right-color: #9393A4;
+			max-width: 300px;
+		}
+
+		.management-bar {
+			border-bottom-width: 0.5px;
+			border-bottom-color: #9393A4;
+		}
+
+		.vertical-nav-content-wrapper {
+			max-width: 834px;
+			padding-left: 150px;
+
+			.form-group {
+				border: 1px solid;
+				border-color: #E2E4EA;
+				border-radius: 8px;
+				margin: 24px;
+				padding: 24px;
+			}
+
+			.form-title {
+				font-size: 24px;
+				font-weight: 500;
+			}
+		}
+	}
 }

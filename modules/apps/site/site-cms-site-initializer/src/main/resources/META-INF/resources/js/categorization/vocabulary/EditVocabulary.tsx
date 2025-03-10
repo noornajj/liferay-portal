@@ -1,0 +1,140 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
+import ClayLayout from '@clayui/layout';
+import ClayIcon from '@clayui/icon';
+import ClayLink from '@clayui/link';
+import ClayToolbar from '@clayui/toolbar';
+import {ClayVerticalNav} from '@clayui/nav';
+import {ManagementToolbar} from 'frontend-js-components-web';
+import React, {useState} from 'react';
+import {sub} from 'frontend-js-web';
+
+import {AssetType} from "../types/AssetType";
+import EditAssociatedAssetTypes from './EditAssociatedAssetTypes';
+import EditGeneralInfo from './EditGeneralInfo';
+import EditPermissions from './EditPermissions';
+import {ManagementToolbar} from "frontend-js-components-web";
+
+export default function EditVocabulary (
+    {
+        assetTypes,
+        onChangeActiveSection,
+        vocabulary,
+    }: {
+        assetTypes: AssetType[];
+        onChangeActiveSection: Function;
+    }
+) {
+
+    const [activeVerticalNavKey, setActiveVerticalNavKey] = useState(
+        "general"
+    );
+
+    const handleVerticalNavChange = (verticalNav)=> {
+        setActiveVerticalNavKey(verticalNav)
+    }
+
+    return (
+        <div className="d-flex flex-column edit-vocabulary">
+            <ManagementToolbar.Container>
+                <ManagementToolbar.ItemList className="c-gap-3" expand>
+                    <ManagementToolbar.Item>
+                        <ClayButton
+                            aria-label={Liferay.Language.get('back')}
+                            className="btn btn-monospaced btn-outline-borderless btn-outline-secondary btn-sm"
+                            onClick={() => onChangeActiveSection('home')}
+                        >
+                            <ClayIcon symbol="angle-left" />
+                        </ClayButton>
+                    </ManagementToolbar.Item>
+
+                    <ManagementToolbar.Item className="nav-item-expand">
+                        <h2 className="font-weight-semi-bold m-0 text-5">
+                            {!!vocabulary
+                                ? sub(
+                                    Liferay.Language.get('edit-x'),
+                                    vocabulary.name
+                                )
+                                : Liferay.Language.get('new-vocabulary')
+                            }
+                        </h2>
+                    </ManagementToolbar.Item>
+
+                    <ManagementToolbar.Item>
+                        <ClayButton
+                            className="btn btn-outline-borderless btn-outline-secondary btn-sm"
+                            onClick={() => onChangeActiveSection('home')}
+                        >
+                            {Liferay.Language.get('cancel')}
+                        </ClayButton>
+                    </ManagementToolbar.Item>
+
+                    <ManagementToolbar.Item>
+                        <ClayButton
+                            displayType="primary"
+                            size="sm"
+                        >
+                            {Liferay.Language.get('save')}
+                        </ClayButton>
+                    </ManagementToolbar.Item>
+                </ManagementToolbar.ItemList>
+            </ManagementToolbar.Container>
+
+            <ClayLayout.ContainerFluid className="m-0" size={false}>
+                <ClayLayout.Row>
+                    <ClayLayout.Col className="categorization-vertical-nav p-0" md={3} sm={12}>
+                        <div className="p-4">
+                        <ClayVerticalNav
+                            items={[
+                                {
+                                    active:
+                                        activeVerticalNavKey ===
+                                        'general',
+                                    label: Liferay.Language.get(
+                                        'general'
+                                    ),
+                                    onClick: () => handleVerticalNavChange('general'),
+                                },
+                                {
+                                    active:
+                                        activeVerticalNavKey ===
+                                        'assetTypes',
+                                    label: Liferay.Language.get(
+                                        'associated-asset-types'
+                                    ),
+                                    onClick: () => handleVerticalNavChange('assetTypes'),
+                                },
+                                {
+                                    active:
+                                        activeVerticalNavKey ===
+                                        'permissions',
+                                    label: Liferay.Language.get('permissions'),
+                                    onClick: () => handleVerticalNavChange('permissions'),
+                                },
+                            ]}
+                        />
+                        </div>
+                    </ClayLayout.Col>
+
+                    <ClayLayout.Col md={9} sm={12}>
+                            {activeVerticalNavKey === 'general' && (
+                                <EditGeneralInfo/>
+                            )}
+                            {activeVerticalNavKey === 'assetTypes' && (
+                                <EditAssociatedAssetTypes
+                                    assetTypes={assetTypes}
+                                />
+                            )}
+                            {activeVerticalNavKey === 'permissions' && (
+                                <EditPermissions/>
+                            )}
+                    </ClayLayout.Col>
+                </ClayLayout.Row>
+            </ClayLayout.ContainerFluid>
+        </div>
+    );
+}

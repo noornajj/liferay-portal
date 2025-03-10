@@ -6,40 +6,34 @@
 import React, {useState} from 'react';
 
 import '../../css/categorization/Categorization.scss';
-import CategorizationToolbar from './CategorizationToolbar';
-import TagsView from './tags/TagsView';
-import VocabulariesView from './vocabulary/VocabulariesView';
+import CategorizationHome from './CategorizationHome';
+import EditVocabulary from './vocabulary/EditVocabulary';
 
-const TABS: string[] = [
-	Liferay.Language.get('vocabularies'),
-	Liferay.Language.get('tags'),
-];
+const SECTIONS = {
+	EDIT_CATEGORIZATION: 'edit-categorization',
+	HOME: 'home',
+};
 
-export default function CategorizationMainView() {
-	const [tab, setTab] = useState(TABS[0]);
+export default function CategorizationMainView( {vocabularyAssetTypes, } : {
+	vocabularyAssetTypes: string[];
+}) {
 
-	const handleTabChange = (tab: string) => {
-		setTab(tab);
-	};
-
-	const renderTabContent = () => {
-		switch (tab) {
-			case 'tags':
-				return <TagsView />;
-			default:
-				return <VocabulariesView />;
-		}
-	};
+	const [activeSection, setActiveSection] = useState(
+		SECTIONS.HOME
+	);
 
 	return (
 		<div className="categorization-section">
-			<CategorizationToolbar
-				activeTab={tab}
-				onChangeTab={handleTabChange}
-				tabs={TABS}
-			/>
+			{activeSection === SECTIONS.HOME && (
+				<CategorizationHome onChangeActiveSection={setActiveSection} />
+			)}
 
-			{renderTabContent()}
+			{activeSection === SECTIONS.EDIT_CATEGORIZATION && (
+				<EditVocabulary
+					assetTypes={vocabularyAssetTypes}
+					onChangeActiveSection={setActiveSection}
+				/>
+			)}
 		</div>
 	);
 }

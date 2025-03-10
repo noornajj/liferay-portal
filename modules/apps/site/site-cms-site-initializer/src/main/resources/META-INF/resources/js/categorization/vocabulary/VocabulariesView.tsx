@@ -6,11 +6,19 @@
 import {FrontendDataSet} from '@liferay/frontend-data-set-web';
 import React from 'react';
 
-export default function VocabulariesView() {
+export default function VocabulariesView(
+	{
+		onChangeActiveSection,
+	}: {
+		onChangeActiveSection: Function;
+	}) {
+
 	const creationMenu = {
 		primaryItems: [
 			{
 				label: Liferay.Language.get('add-vocabulary'),
+				onClick: () =>
+					onChangeActiveSection('edit-categorization'),
 			},
 		],
 	};
