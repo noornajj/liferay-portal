@@ -23,6 +23,7 @@ ViewVocabulariesDisplayContext viewVocabulariesDisplayContext = (ViewVocabularie
 		<frontend-data-set:headless-display
 			apiURL="<%= viewVocabulariesDisplayContext.getAPIURL() %>"
 			creationMenu="<%= viewVocabulariesDisplayContext.getCreationMenu() %>"
+			fdsActionDropdownItems="<%= viewVocabulariesDisplayContext.getFDSActionDropdownItems() %>"
 			fdsFilters="<%= viewVocabulariesDisplayContext.getFDSFilters() %>"
 			id="test"
 			propsTransformer="{VocabularyAssetTypesFDSPropsTransformer} from site-cms-site-initializer"
