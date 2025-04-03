@@ -40,9 +40,7 @@ export default function ConfirmChangesModal({
 				{Liferay.Language.get('confirm-changes')}
 			</ClayModal.Header>
 
-			<ClayModal.Body>
-				{getConfirmationMessage()}
-			</ClayModal.Body>
+			<ClayModal.Body>{getConfirmationMessage()}</ClayModal.Body>
 
 			<ClayModal.Footer
 				last={
