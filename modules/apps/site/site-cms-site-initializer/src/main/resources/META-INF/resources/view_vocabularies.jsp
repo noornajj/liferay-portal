@@ -30,3 +30,24 @@ ViewVocabulariesDisplayContext viewVocabulariesDisplayContext = (ViewVocabularie
 		/>
 	</div>
 </div>
+
+
+<aui:script>
+	(function () {
+	const sessionKey = 'com.liferay.site.cms.site.initializer.vocabularySuccessMessage';
+
+	const successMessage = Liferay.Util.SessionStorage.getItem(
+	sessionKey,
+	Liferay.Util.SessionStorage.TYPES.NECESSARY
+	);
+
+	if (successMessage) {
+	Liferay.Util.openToast({
+	message: successMessage,
+	type: 'success',
+	});
+
+	Liferay.Util.SessionStorage.removeItem(sessionKey);
+	}
+	})();
+</aui:script>

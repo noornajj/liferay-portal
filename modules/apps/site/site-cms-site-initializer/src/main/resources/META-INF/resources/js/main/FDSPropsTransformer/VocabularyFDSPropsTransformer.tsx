@@ -5,13 +5,17 @@
 
 import {IInternalRenderer} from '@liferay/frontend-data-set-web';
 
+import DeleteVocabularyConfirmationModal from '../categorization/vocabularies/DeleteVocabularyConfirmationModal'
+import {IVocabulary} from '../categorization/types/IVocabulary';
 import VocabularyRenderer from './cell_renderers/VocabularyRenderer';
+import React from 'react';
 
 export default function VocabularyFDSPropsTransformer({
 	...otherProps
 }: {
 	otherProps: any;
 }) {
+
 	return {
 		...otherProps,
 		customRenderers: {
@@ -23,5 +27,18 @@ export default function VocabularyFDSPropsTransformer({
 				} as IInternalRenderer,
 			],
 		},
+		onActionDropdownItemClick({
+			action,
+			itemData,
+		}: {
+			action: {data: {id: string}};
+			itemData: IVocabulary;
+		}) {
+			if (action.data.id === 'delete') {
+				<DeleteVocabularyConfirmationModal
+					itemData={itemData}
+				/>
+			}
+		}
 	};
 }
