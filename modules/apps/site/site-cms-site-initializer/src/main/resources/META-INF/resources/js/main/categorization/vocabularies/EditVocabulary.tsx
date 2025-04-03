@@ -50,17 +50,21 @@ export default function EditVocabulary({
 	const [title, setTitle] = useState<string>('');
 	const [vocabulary, setVocabulary] = useState<IVocabulary>({
 		description: '',
+		description_i18n: {
+			[defaultLanguageId]: '',
+		},
 		name: '',
 		name_i18n: {
 			[defaultLanguageId]: '',
 		},
 	});
 
-	const isNew: boolean = !vocabularyId;
+	// @ts-ignore
+	const isNew: boolean = vocabularyId == 0;
 
 	useEffect(() => {
 		const fetchData = async () => {
-			if (!vocabularyId) {
+			if (isNew) {
 				return;
 			}
 			else {
@@ -79,7 +83,7 @@ export default function EditVocabulary({
 		};
 
 		fetchData();
-	}, [backURL, siteId, vocabularyId]);
+	});
 
 	const _handleValidateInputs = () => {
 		if (nameInputError || vocabulary.name === '') {
