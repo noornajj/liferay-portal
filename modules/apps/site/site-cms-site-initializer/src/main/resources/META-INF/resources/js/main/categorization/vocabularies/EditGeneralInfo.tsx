@@ -13,7 +13,6 @@ import ClayForm, {
 } from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import {ClayTooltipProvider} from '@clayui/tooltip';
-import {selectedLanguageIdAtom} from 'frontend-js-components-web';
 import {sub} from 'frontend-js-web';
 import React, {useState} from 'react';
 
@@ -51,6 +50,10 @@ export default function EditGeneralInfo({
 	const [languageId, setLanguageId] = useState<string>(defaultLanguageId);
 	const [toggled, setToggle] = useState<boolean>(true);
 
+	const getLanguageLabel = (languageId: string) => {
+		return languageId.replace('_', '-');
+	};
+
 	const onChangeDescription = (newDescription: string) => {
 		onChangeVocabulary(() => ({
 			...vocabulary,
@@ -59,7 +62,7 @@ export default function EditGeneralInfo({
 			}),
 			description_i18n: {
 				...vocabulary.description_i18n,
-				[languageId]: newDescription,
+				[getLanguageLabel(languageId)]: newDescription,
 			},
 		}));
 	};
@@ -82,7 +85,7 @@ export default function EditGeneralInfo({
 			...(languageId === defaultLanguageId && {name: newName}),
 			name_i18n: {
 				...vocabulary.name_i18n,
-				[languageId]: newName,
+				[getLanguageLabel(languageId)]: newName,
 			},
 		}));
 	};
@@ -148,7 +151,13 @@ export default function EditGeneralInfo({
 							onChangeDescription(value)
 						}
 						type="text"
-						value={vocabulary.description}
+						value={
+							vocabulary.description_i18n
+								? vocabulary.description_i18n[
+										getLanguageLabel(languageId)
+									] || ''
+								: ''
+						}
 					/>
 				</div>
 
