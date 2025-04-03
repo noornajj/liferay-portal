@@ -26,7 +26,7 @@ ViewVocabulariesDisplayContext viewVocabulariesDisplayContext = (ViewVocabularie
 			fdsActionDropdownItems="<%= viewVocabulariesDisplayContext.getFDSActionDropdownItems() %>"
 			fdsFilters="<%= viewVocabulariesDisplayContext.getFDSFilters() %>"
 			id="test"
-			propsTransformer="{VocabularyAssetTypesFDSPropsTransformer} from site-cms-site-initializer"
+			propsTransformer="{VocabularyFDSPropsTransformer} from site-cms-site-initializer"
 		/>
 	</div>
 </div>

@@ -42,7 +42,7 @@ public class VocabulariesTableFDSView extends BaseTableFDSView {
 		).add(
 			"assetTypes", "type",
 			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
-				"customVocabularyAssetTypesRenderer"
+				"customVocabularyRenderer"
 			).setSortable(
 				true
 			)

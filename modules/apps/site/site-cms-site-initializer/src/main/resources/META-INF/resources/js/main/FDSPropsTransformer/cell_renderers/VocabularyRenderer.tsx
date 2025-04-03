@@ -11,7 +11,7 @@ interface AssetType {
 	type: string;
 }
 
-const VocabularyAssetTypesRenderer = ({value}: {value: AssetType[]}) => {
+const VocabularyRenderer = ({value}: {value: AssetType[]}) => {
 	const getTypes = (assetTypes: AssetType[]) => {
 		let types: string = '';
 
@@ -30,4 +30,4 @@ const VocabularyAssetTypesRenderer = ({value}: {value: AssetType[]}) => {
 	return <>{getTypes(value)}</>;
 };
 
-export default VocabularyAssetTypesRenderer;
+export default VocabularyRenderer;

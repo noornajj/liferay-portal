@@ -5,9 +5,9 @@
 
 import {IInternalRenderer} from '@liferay/frontend-data-set-web';
 
-import VocabularyAssetTypesRenderer from './cell_renderers/VocabularyAssetTypesRenderer';
+import VocabularyRenderer from './cell_renderers/VocabularyRenderer';
 
-export default function VocabularyAssetTypesFDSPropsTransformer({
+export default function VocabularyFDSPropsTransformer({
 	...otherProps
 }: {
 	otherProps: any;
@@ -17,8 +17,8 @@ export default function VocabularyAssetTypesFDSPropsTransformer({
 		customRenderers: {
 			tableCell: [
 				{
-					component: VocabularyAssetTypesRenderer,
-					name: 'customVocabularyAssetTypesRenderer',
+					component: VocabularyRenderer,
+					name: 'customVocabularyRenderer',
 					type: 'internal',
 				} as IInternalRenderer,
 			],
