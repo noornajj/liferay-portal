@@ -54,6 +54,9 @@ export default function EditGeneralInfo({
 	const onChangeDescription = (newDescription: string) => {
 		onChangeVocabulary(() => ({
 			...vocabulary,
+			...(languageId === defaultLanguageId && {
+				description: newDescription,
+			}),
 			description_i18n: {
 				...vocabulary.description_i18n,
 				[languageId]: newDescription,
@@ -76,6 +79,7 @@ export default function EditGeneralInfo({
 
 		onChangeVocabulary(() => ({
 			...vocabulary,
+			...(languageId === defaultLanguageId && {name: newName}),
 			name_i18n: {
 				...vocabulary.name_i18n,
 				[languageId]: newName,
@@ -125,7 +129,7 @@ export default function EditGeneralInfo({
 						onChange={({target: {value}}) => onChangeName(value)}
 						required
 						type="text"
-						value={vocabulary.name_i18n[languageId] || ''}
+						value={vocabulary.name}
 					/>
 
 					{nameInputError && (
@@ -144,11 +148,7 @@ export default function EditGeneralInfo({
 							onChangeDescription(value)
 						}
 						type="text"
-						value={
-							vocabulary.description_i18n
-								? vocabulary.description_i18n[languageId] || ''
-								: ''
-						}
+						value={vocabulary.description}
 					/>
 				</div>
 

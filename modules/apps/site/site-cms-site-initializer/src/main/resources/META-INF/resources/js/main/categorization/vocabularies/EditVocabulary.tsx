@@ -15,6 +15,7 @@ import React, {useEffect, useState} from 'react';
 import VocabularyService from '../services/VocabularyService';
 import {AssetType} from '../types/AssetType';
 import {IVocabulary} from '../types/IVocabulary';
+import ConfirmChangesModal from "./ConfirmChangesModal";
 import EditAssociatedAssetTypes from './EditAssociatedAssetTypes';
 import EditGeneralInfo from './EditGeneralInfo';
 
@@ -43,6 +44,7 @@ export default function EditVocabulary({
 	const [activeVerticalNavKey, setActiveVerticalNavKey] = useState(
 		NAVIGATION_TABS.GENERAL
 	);
+	const [changeType, setChangeType] = useState<string>('');
 	const [nameInputError, setNameInputError] = useState<string>('');
 	const {observer, onOpenChange, open} = useModal();
 	const [title, setTitle] = useState<string>('');
@@ -248,6 +250,17 @@ export default function EditVocabulary({
 						</ClayLayout.Col>
 					</ClayLayout.Row>
 				</ClayLayout.ContainerFluid>
+
+				<>
+					{changeType && open && (
+						<ConfirmChangesModal
+							changeType={changeType}
+							observer={observer}
+							onOpenChange={onOpenChange}
+							onSave={_handleSave}
+						/>
+					)}
+				</>
 			</div>
 		</div>
 	);
