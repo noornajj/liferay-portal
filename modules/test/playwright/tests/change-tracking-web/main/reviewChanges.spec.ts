@@ -12,6 +12,7 @@ import {accountSettingsPagesTest} from '../../../fixtures/accountSettingsPagesTe
 import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
 import {changeTrackingPagesTest} from '../../../fixtures/changeTrackingPagesTest';
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
+import {displayPageTemplatesPagesTest} from '../../../fixtures/displayPageTemplatesPagesTest';
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {pageEditorPagesTest} from '../../../fixtures/pageEditorPagesTest';
@@ -30,6 +31,7 @@ export const test = mergeTests(
 	apiHelpersTest,
 	changeTrackingPagesTest,
 	dataApiHelpersTest,
+    displayPageTemplatesPagesTest,
 	isolatedSiteTest,
 	journalPagesTest,
 	pagesAdminPagesTest,
@@ -511,4 +513,50 @@ test('User time zone from theme display is applied to publication FDS', async ({
 
 		await accountSettingsPage.setTimeZone('UTC');
 	});
+});
+
+test('LPD-61747 Preview display page for asset in review change screen', async ({
+																										 apiHelpers,
+																										 changeTrackingPage,
+																										 ctCollection,
+																					displayPageTemplatesPage,
+																										 page,
+}) => {
+
+	const site =
+		await apiHelpers.headlessAdminUser.getSiteByFriendlyUrlPath('guest');
+	const displayPageTemplateName = getRandomString();
+	const blogsEntryClassName =
+		await apiHelpers.jsonWebServicesClassName.fetchClassName(
+			'com.liferay.blogs.model.BlogsEntry'
+		);
+
+	let displayPage =
+		await apiHelpers.jsonWebServicesLayoutPageTemplateEntry.addDisplayPageLayoutPageTemplateEntry(
+			{
+				classNameId: blogsEntryClassName.classNameId,
+				groupId: site.id,
+				name: displayPageTemplateName,
+				type: 'display-page',
+			}
+		);
+
+	await apiHelpers.jsonWebServicesLayoutPageTemplateEntry.markAsDefaultDisplayPageLayoutPageTemplateEntry(
+		{
+			layoutPageTemplateEntryId:
+			displayPage.layoutPageTemplateEntryId,
+		}
+	);
+
+	await changeTrackingPage.workOnPublication(ctCollection);
+
+	await apiHelpers.headlessDelivery.postBlog(site.id);
+
+	await changeTrackingPage.goToReviewChanges(ctCollection.body.name);
+
+	await page.getByRole('link', {name: 'Blogs Entry (1)'}).click();
+
+    const displayPageLocator = page.locator('.publications-render-view-content iframe');
+
+    await expect(displayPageLocator).toBeVisible();
 });
