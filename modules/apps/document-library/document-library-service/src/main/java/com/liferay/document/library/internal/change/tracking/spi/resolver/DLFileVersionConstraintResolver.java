@@ -78,15 +78,13 @@ public class DLFileVersionConstraintResolver
 		DLFileVersion dlFileVersion =
 			constraintResolverContext.getSourceCTModel();
 
-		List<String> latestVersionParts = constraintResolverContext.getInTarget(
-			() -> {
-				DLFileVersion latestFileVersion =
-					_dlFileVersionLocalService.getLatestFileVersion(
-						dlFileVersion.getFileEntryId(), false);
+		DLFileVersion latestFileVersion =
+			_dlFileVersionLocalService.getLatestFileVersion(
+				dlFileVersion.getFileEntryId(), false);
 
-				return StringUtil.split(
-					latestFileVersion.getVersion(), CharPool.PERIOD);
-			});
+		List<String> latestVersionParts = constraintResolverContext.getInTarget(
+			() -> StringUtil.split(
+				latestFileVersion.getVersion(), CharPool.PERIOD));
 
 		if (latestVersionParts.isEmpty()) {
 			return;
@@ -108,7 +106,7 @@ public class DLFileVersionConstraintResolver
 			if (!constraintResolverContext.isSourceCTModel(
 					currentDLFileVersion)) {
 
-				previousFileVersion = currentDLFileVersion;
+				previousFileVersion = latestFileVersion;
 
 				continue;
 			}
@@ -135,7 +133,7 @@ public class DLFileVersionConstraintResolver
 					GetterUtil.getInteger(ctVersionParts.get(i)) -
 						GetterUtil.getInteger(previousVersionParts.get(i)));
 
-				if (versionIncrease > 0) {
+				if ((versionIncrease >= 0) && (i > 0)) {
 					int latestVersionPart = GetterUtil.getInteger(
 						latestVersionParts.get(i));
 
