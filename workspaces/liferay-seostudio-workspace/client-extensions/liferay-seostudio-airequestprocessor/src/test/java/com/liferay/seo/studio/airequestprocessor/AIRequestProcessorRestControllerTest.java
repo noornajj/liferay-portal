@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.UncheckedIOException;
 
 import java.nio.charset.StandardCharsets;
 
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.multipart.MultipartFile;
@@ -396,6 +398,100 @@ public class AIRequestProcessorRestControllerTest {
 		verify(
 			_scanClient, never()
 		).createScan(anyString(), anyLong(), anyString(), anyString(), any());
+	}
+
+	@Test
+	public void testHandleConcurrentScanExceptionReturns409WithScanId() {
+		ResponseEntity<String> response =
+			_controller.handleConcurrentScanException(
+				new ConcurrentScanException(99L));
+
+		assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+
+		JSONObject body = new JSONObject(response.getBody());
+
+		assertEquals(99L, body.getLong("conflictingScanId"));
+	}
+
+	@Test
+	public void testHandleIllegalArgumentExceptionReturns400WithMessage() {
+		ResponseEntity<String> response =
+			_controller.handleIllegalArgumentException(
+				new IllegalArgumentException("Unsupported log format: zzz"));
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+		JSONObject body = new JSONObject(response.getBody());
+
+		assertTrue(body.getString("message").contains("zzz"));
+	}
+
+	@Test
+	public void testHandleInvalidLogFormatExceptionReturns400WithLine() {
+		ResponseEntity<String> response =
+			_controller.handleInvalidLogFormatException(
+				new InvalidLogFormatException(
+					"bogus line", "does not match regex"));
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+		JSONObject body = new JSONObject(response.getBody());
+
+		assertEquals("bogus line", body.getString("line"));
+		assertTrue(
+			body.getString("message"
+			).contains("does not match regex"));
+	}
+
+	@Test
+	public void testUncheckedIOExceptionFromParserIsUnwrappedToCheckedILFE()
+		throws Exception {
+
+		when(
+			_scanClient.findInFlightAIRequestProcessorScan(
+				anyString(), anyLong())
+		).thenReturn(
+			java.util.Optional.empty()
+		);
+		when(
+			_scanClient.findLastCompletedAIRequestProcessorScan(
+				anyString(), anyLong())
+		).thenReturn(
+			java.util.Optional.empty()
+		);
+		when(
+			_aiBotConfigurationClient.listEnabledAgentNames(
+				anyString(), anyLong())
+		).thenReturn(
+			Collections.emptyList()
+		);
+		when(
+			_scanClient.createScan(
+				anyString(), anyLong(), anyString(), anyString(), any())
+		).thenReturn(
+			new JSONObject().put("id", 7L)
+		);
+
+		InvalidLogFormatException cause = new InvalidLogFormatException(
+			"corrupt line", "does not match regex");
+
+		when(
+			_logParser.parse(any(), any())
+		).thenThrow(
+			new UncheckedIOException(cause)
+		);
+
+		InvalidLogFormatException thrown = assertThrows(
+			InvalidLogFormatException.class,
+			() -> _controller.post(_jwt, 42L, "apache-combined", _multipartFile));
+
+		assertEquals("corrupt line", thrown.getLine());
+
+		verify(
+			_scanClient
+		).updateScanState(
+			eq("test-token"), eq(7L), eq("failed"), anyString()
+		);
 	}
 
 	@Test

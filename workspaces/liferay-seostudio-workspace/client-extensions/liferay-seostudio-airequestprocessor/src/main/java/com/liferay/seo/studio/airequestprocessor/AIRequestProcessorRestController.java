@@ -8,6 +8,7 @@ package com.liferay.seo.studio.airequestprocessor;
 import com.liferay.client.extension.util.spring.boot3.BaseRestController;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -26,9 +27,11 @@ import org.apache.commons.logging.LogFactory;
 
 import org.json.JSONObject;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -138,8 +141,67 @@ public class AIRequestProcessorRestController extends BaseRestController {
 		catch (RuntimeException runtimeException) {
 			_failQuietly(token, scanId, runtimeException);
 
+			Throwable cause = runtimeException.getCause();
+
+			if ((runtimeException instanceof UncheckedIOException) &&
+				(cause instanceof InvalidLogFormatException)) {
+
+				throw (InvalidLogFormatException)cause;
+			}
+
 			throw runtimeException;
 		}
+	}
+
+	@ExceptionHandler(ConcurrentScanException.class)
+	public ResponseEntity<String> handleConcurrentScanException(
+		ConcurrentScanException concurrentScanException) {
+
+		JSONObject body = new JSONObject(
+		).put(
+			"conflictingScanId",
+			concurrentScanException.getConflictingScanId()
+		).put(
+			"message", concurrentScanException.getMessage()
+		);
+
+		return ResponseEntity.status(
+			HttpStatus.CONFLICT
+		).body(
+			body.toString()
+		);
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<String> handleIllegalArgumentException(
+		IllegalArgumentException illegalArgumentException) {
+
+		JSONObject body = new JSONObject(
+		).put(
+			"message", illegalArgumentException.getMessage()
+		);
+
+		return ResponseEntity.badRequest(
+		).body(
+			body.toString()
+		);
+	}
+
+	@ExceptionHandler(InvalidLogFormatException.class)
+	public ResponseEntity<String> handleInvalidLogFormatException(
+		InvalidLogFormatException invalidLogFormatException) {
+
+		JSONObject body = new JSONObject(
+		).put(
+			"line", invalidLogFormatException.getLine()
+		).put(
+			"message", invalidLogFormatException.getMessage()
+		);
+
+		return ResponseEntity.badRequest(
+		).body(
+			body.toString()
+		);
 	}
 
 	private void _failQuietly(String token, long scanId, Throwable throwable) {
