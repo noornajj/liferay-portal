@@ -1,0 +1,14 @@
+assemble:
+    -   fromTask: bootJar
+liferay-seostudio-airequestprocessor-oahs:
+    .serviceAddress: localhost:58081
+    .serviceScheme: http
+    name: Liferay SEO Studio AI Request Processor OAuth Application Headless Server
+    scopes:
+        -   Liferay.Object.Admin.REST.everything
+    type: oAuthApplicationHeadlessServer
+liferay-seostudio-airequestprocessor-oaua:
+    .serviceAddress: localhost:58081
+    .serviceScheme: http
+    name: Liferay SEO Studio AI Request Processor OAuth Application User Agent
+    type: oAuthApplicationUserAgent
