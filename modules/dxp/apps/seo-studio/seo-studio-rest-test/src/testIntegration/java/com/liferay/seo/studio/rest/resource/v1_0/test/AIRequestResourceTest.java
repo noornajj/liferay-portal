@@ -99,6 +99,8 @@ public class AIRequestResourceTest extends BaseAIRequestResourceTestCase {
 		ObjectEntry scanObjectEntry = _addObjectEntry(
 			"SEOStudioScan",
 			HashMapBuilder.<String, Object>put(
+				"name", "aiRequestProcessor"
+			).put(
 				"r_seoStudioDomainToSEOStudioScans_seoStudioDomainId", _domainId
 			).put(
 				"requestDate",
