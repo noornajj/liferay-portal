@@ -39,8 +39,8 @@ import org.springframework.stereotype.Component;
 public class DetectOrphanPagesCrawler {
 
 	public void detect(
-			long seoStudioScanId, long accountEntryId, URI hostname,
-			String insightType, List<CrawlHit> crawlHits)
+			long accountEntryId, List<CrawlHit> crawlHits, URI hostname,
+			String insightType, long seoStudioScanId)
 		throws Exception {
 
 		Set<String> canonicalURLs = new LinkedHashSet<>();
@@ -89,16 +89,16 @@ public class DetectOrphanPagesCrawler {
 		}
 
 		long seoStudioInsightTypeId = _findOrCreateInsightTypeId(
-			seoStudioScanId, accountEntryId, insightType);
+			accountEntryId, insightType, seoStudioScanId);
 
-		_createPagesBatch(seoStudioScanId, accountEntryId, orphans);
+		_createPagesBatch(accountEntryId, orphans, seoStudioScanId);
 
 		Map<String, Long> pageIdsByURL = _fetchPageIdsByURL(
-			seoStudioScanId, orphans);
+			orphans, seoStudioScanId);
 
 		_createScanInsightsBatch(
-			seoStudioScanId, accountEntryId, seoStudioInsightTypeId, orphans,
-			pageIdsByURL);
+			accountEntryId, orphans, pageIdsByURL, seoStudioInsightTypeId,
+			seoStudioScanId);
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
@@ -110,7 +110,7 @@ public class DetectOrphanPagesCrawler {
 	}
 
 	private void _createPagesBatch(
-			long seoStudioScanId, long accountEntryId, List<String> orphans)
+			long accountEntryId, List<String> orphans, long seoStudioScanId)
 		throws Exception {
 
 		for (int i = 0; i < orphans.size(); i += _BATCH_SIZE) {
@@ -129,9 +129,9 @@ public class DetectOrphanPagesCrawler {
 	}
 
 	private void _createScanInsightsBatch(
-			long seoStudioScanId, long accountEntryId,
-			long seoStudioInsightTypeId, List<String> orphans,
-			Map<String, Long> pageIdsByURL)
+			long accountEntryId, List<String> orphans,
+			Map<String, Long> pageIdsByURL, long seoStudioInsightTypeId,
+			long seoStudioScanId)
 		throws Exception {
 
 		String detectedDate = Instant.now(
@@ -173,7 +173,7 @@ public class DetectOrphanPagesCrawler {
 	}
 
 	private Map<String, Long> _fetchPageIdsByURL(
-			long seoStudioScanId, List<String> orphans)
+			List<String> orphans, long seoStudioScanId)
 		throws Exception {
 
 		long time = System.currentTimeMillis() + 60000;
@@ -202,7 +202,7 @@ public class DetectOrphanPagesCrawler {
 	}
 
 	private long _findOrCreateInsightTypeId(
-		long seoStudioScanId, long accountEntryId, String insightType) {
+		long accountEntryId, String insightType, long seoStudioScanId) {
 
 		String externalReferenceCode = insightType + ":" + seoStudioScanId;
 

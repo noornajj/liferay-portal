@@ -217,11 +217,10 @@ public class CrawlerRestController extends BaseRestController {
 			if (exitCode == 0) {
 				try {
 					_detectOrphanPagesCrawler.detect(
-						seoStudioScanId,
 						valuesJSONObject.getLong(
 							"r_accountToSEOStudioScans_accountEntryId"),
-						canonicalHostname, "orphan_page",
-						_seoStudioService.fetchCrawlHits(seoStudioDomainId));
+						_seoStudioService.fetchCrawlHits(seoStudioDomainId),
+						canonicalHostname, "orphan_page", seoStudioScanId);
 				}
 				catch (Exception exception) {
 					_log.error(
