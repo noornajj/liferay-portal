@@ -8,6 +8,7 @@ package com.liferay.seo.studio.controller;
 import com.liferay.client.extension.util.spring.boot3.BaseRestController;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.seo.studio.crawler.BrokenImagesDetectionCrawler;
 import com.liferay.seo.studio.crawler.ImageAltTextDetectionCrawler;
 import com.liferay.seo.studio.crawler.OrphanPagesDetectionCrawler;
 import com.liferay.seo.studio.model.CrawlHit;
@@ -248,6 +249,18 @@ public class CrawlerRestController extends BaseRestController {
 						exception);
 				}
 
+				try {
+					_brokenImagesDetectionCrawler.detect(
+						accountEntryId, crawlHits, canonicalHostname,
+						seoStudioScanId);
+				}
+				catch (Exception exception) {
+					_log.error(
+						"Broken images detection failed for scan " +
+							seoStudioScanId,
+						exception);
+				}
+
 				_updateScanState(seoStudioScanId, "completed", null);
 
 				return ResponseEntity.ok(
@@ -384,6 +397,9 @@ public class CrawlerRestController extends BaseRestController {
 
 	private static final Log _log = LogFactory.getLog(
 		CrawlerRestController.class);
+
+	@Autowired
+	private BrokenImagesDetectionCrawler _brokenImagesDetectionCrawler;
 
 	@Value("${liferay.seo.studio.crawler.elasticsearch.host}")
 	private String _crawlerElasticsearchHost;

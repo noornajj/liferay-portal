@@ -8,6 +8,12 @@
 			"system": true
 		},
 		{
+			"externalReferenceCode": "BROKEN_IMAGE_URLS",
+			"key": "brokenImageURLs",
+			"name": "Broken Image URLs (404s)",
+			"system": true
+		},
+		{
 			"externalReferenceCode": "EMPTY_ALT_ATTRIBUTES_ON_IMAGES",
 			"key": "emptyAltAttributesOnImages",
 			"name": "Empty Alt Attributes on Images",
