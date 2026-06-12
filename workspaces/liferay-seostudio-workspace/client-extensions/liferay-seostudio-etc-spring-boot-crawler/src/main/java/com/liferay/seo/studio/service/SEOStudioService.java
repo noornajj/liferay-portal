@@ -144,16 +144,6 @@ public class SEOStudioService extends BaseService {
 					pageSize)));
 	}
 
-	public String findInsightTypeByERC(String externalReferenceCode) {
-		String encodedERC = URLEncoder.encode(
-			externalReferenceCode, StandardCharsets.UTF_8);
-
-		return get(
-			_authorization(),
-			URI.create(
-				_INSIGHT_TYPES + "/by-external-reference-code/" + encodedERC));
-	}
-
 	public String updateDomain(long seoStudioDomainId, JSONObject jsonObject) {
 		return patch(
 			_authorization(), jsonObject.toString(),

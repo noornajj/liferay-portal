@@ -8,8 +8,8 @@ package com.liferay.seo.studio.controller;
 import com.liferay.client.extension.util.spring.boot3.BaseRestController;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.seo.studio.crawler.DetectImageAltTextCrawler;
-import com.liferay.seo.studio.crawler.DetectOrphanPagesCrawler;
+import com.liferay.seo.studio.crawler.ImageAltTextDetectionCrawler;
+import com.liferay.seo.studio.crawler.OrphanPagesDetectionCrawler;
 import com.liferay.seo.studio.model.CrawlHit;
 import com.liferay.seo.studio.service.SEOStudioService;
 
@@ -225,9 +225,9 @@ public class CrawlerRestController extends BaseRestController {
 					seoStudioDomainId);
 
 				try {
-					_detectOrphanPagesCrawler.detect(
+					_orphanPagesDetectionCrawler.detect(
 						accountEntryId, crawlHits, canonicalHostname,
-						"orphan_page", seoStudioScanId);
+						seoStudioScanId);
 				}
 				catch (Exception exception) {
 					_log.error(
@@ -237,8 +237,9 @@ public class CrawlerRestController extends BaseRestController {
 				}
 
 				try {
-					_detectImageAltTextCrawler.detect(
-						seoStudioScanId, accountEntryId, crawlHits);
+					_imageAltTextDetectionCrawler.detect(
+						accountEntryId, crawlHits, canonicalHostname,
+						seoStudioScanId);
 				}
 				catch (Exception exception) {
 					_log.error(
@@ -400,10 +401,10 @@ public class CrawlerRestController extends BaseRestController {
 	private int _crawlerURLQueueSizeLimit;
 
 	@Autowired
-	private DetectImageAltTextCrawler _detectImageAltTextCrawler;
+	private ImageAltTextDetectionCrawler _imageAltTextDetectionCrawler;
 
 	@Autowired
-	private DetectOrphanPagesCrawler _detectOrphanPagesCrawler;
+	private OrphanPagesDetectionCrawler _orphanPagesDetectionCrawler;
 
 	@Autowired
 	private SEOStudioService _seoStudioService;
