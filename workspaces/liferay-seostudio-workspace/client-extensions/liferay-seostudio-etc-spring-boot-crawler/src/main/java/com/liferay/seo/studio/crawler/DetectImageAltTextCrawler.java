@@ -6,6 +6,7 @@
 package com.liferay.seo.studio.crawler;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.seo.studio.model.CrawlHit;
 import com.liferay.seo.studio.service.SEOStudioService;
@@ -39,12 +40,19 @@ public class DetectImageAltTextCrawler {
 			long seoStudioScanId, long accountEntryId, List<CrawlHit> crawlHits)
 		throws Exception {
 
-		List<String> pageURLs = _collectMissingAltTextPages(crawlHits);
+		Map<String, List<String>> pageURLsByInsightTypeMap =
+			_collectAltInsightPages(crawlHits);
 
-		if (ListUtil.isEmpty(pageURLs)) {
+		Set<String> pageURLs = new LinkedHashSet<>();
+
+		for (List<String> insightPageURLs : pageURLsByInsightTypeMap.values()) {
+			pageURLs.addAll(insightPageURLs);
+		}
+
+		if (pageURLs.isEmpty()) {
 			if (_log.isInfoEnabled()) {
 				_log.info(
-					"No missing alt text images were detected for scan " +
+					"No image alt text insights were detected for scan " +
 						seoStudioScanId);
 			}
 
@@ -52,35 +60,66 @@ public class DetectImageAltTextCrawler {
 		}
 
 		Map<String, Long> pageIdsByURLMap = _ensurePages(
-			seoStudioScanId, accountEntryId, pageURLs);
+			seoStudioScanId, accountEntryId, new ArrayList<>(pageURLs));
 
 		_writeInsights(
+			_ALT_TEXT_TOO_LONG_JSON_OBJECT, seoStudioScanId, accountEntryId,
+			pageURLsByInsightTypeMap.get(
+				_ALT_TEXT_TOO_LONG_JSON_OBJECT.getString("insightType")),
+			pageIdsByURLMap);
+		_writeInsights(
+			_EMPTY_ALT_ATTRIBUTES_JSON_OBJECT, seoStudioScanId, accountEntryId,
+			pageURLsByInsightTypeMap.get(
+				_EMPTY_ALT_ATTRIBUTES_JSON_OBJECT.getString("insightType")),
+			pageIdsByURLMap);
+		_writeInsights(
 			_MISSING_ALT_TEXT_JSON_OBJECT, seoStudioScanId, accountEntryId,
-			pageURLs, pageIdsByURLMap);
+			pageURLsByInsightTypeMap.get(
+				_MISSING_ALT_TEXT_JSON_OBJECT.getString("insightType")),
+			pageIdsByURLMap);
 	}
 
-	private List<String> _collectMissingAltTextPages(List<CrawlHit> crawlHits) {
-		Set<String> pageURLs = new LinkedHashSet<>();
+	private Map<String, List<String>> _collectAltInsightPages(
+		List<CrawlHit> crawlHits) {
+
+		Set<String> altTextTooLongPageURLs = new LinkedHashSet<>();
+		Set<String> emptyAltPageURLs = new LinkedHashSet<>();
+		Set<String> missingAltTextPageURLs = new LinkedHashSet<>();
 
 		for (CrawlHit crawlHit : crawlHits) {
+			String pageURL = _pageURL(crawlHit);
+
+			if (pageURL == null) {
+				continue;
+			}
+
 			JSONArray imagesJSONArray = crawlHit.getImages();
 
 			for (int i = 0; i < imagesJSONArray.length(); i++) {
 				JSONObject imageJSONObject = imagesJSONArray.getJSONObject(i);
 
+				String alt = imageJSONObject.getString("alt");
+
 				if (!imageJSONObject.optBoolean("altPresent")) {
-					String pageURL = _pageURL(crawlHit);
+					missingAltTextPageURLs.add(pageURL);
+				}
+				else if (alt.isBlank()) {
+					emptyAltPageURLs.add(pageURL);
+				}
 
-					if (pageURL != null) {
-						pageURLs.add(pageURL);
-					}
-
-					break;
+				if (alt.length() > _MAX_ALT_LENGTH) {
+					altTextTooLongPageURLs.add(pageURL);
 				}
 			}
 		}
 
-		return new ArrayList<>(pageURLs);
+		return HashMapBuilder.<String, List<String>>put(
+			"alt_text_too_long", new ArrayList<>(altTextTooLongPageURLs)
+		).put(
+			"empty_alt_attributes", new ArrayList<>(emptyAltPageURLs)
+		).put(
+			"missing_alt_text", new ArrayList<>(missingAltTextPageURLs)
+		).build();
 	}
 
 	private long _createInsightTypeId(
@@ -335,7 +374,42 @@ public class DetectImageAltTextCrawler {
 		}
 	}
 
+	private static final JSONObject _ALT_TEXT_TOO_LONG_JSON_OBJECT =
+		new JSONObject(
+		).put(
+			"category", "images"
+		).put(
+			"description",
+			StringBundler.concat(
+				"One or more alt attributes exceed 125 characters. Screen ",
+				"readers truncate long alt text and excessively long ",
+				"descriptions read as keyword stuffing to search engines.")
+		).put(
+			"insightType", "alt_text_too_long"
+		).put(
+			"name", "altTextTooLong"
+		);
+
 	private static final int _BATCH_SIZE = 100;
+
+	private static final JSONObject _EMPTY_ALT_ATTRIBUTES_JSON_OBJECT =
+		new JSONObject(
+		).put(
+			"category", "images"
+		).put(
+			"description",
+			StringBundler.concat(
+				"One or more images use alt=\"\". This is the correct setting ",
+				"for purely decorative images, but it is frequently applied ",
+				"to meaningful images by mistake - making them invisible to ",
+				"both search engines and screen readers.")
+		).put(
+			"insightType", "empty_alt_attributes"
+		).put(
+			"name", "emptyAltAttributesOnImages"
+		);
+
+	private static final int _MAX_ALT_LENGTH = 125;
 
 	private static final JSONObject _MISSING_ALT_TEXT_JSON_OBJECT =
 		new JSONObject(

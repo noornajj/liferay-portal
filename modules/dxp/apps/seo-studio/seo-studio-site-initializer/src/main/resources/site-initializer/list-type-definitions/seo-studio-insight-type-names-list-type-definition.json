@@ -2,6 +2,18 @@
 	"externalReferenceCode": "L_SEO_STUDIO_INSIGHT_TYPE_NAMES",
 	"listTypeEntries": [
 		{
+			"externalReferenceCode": "ALT_TEXT_TOO_LONG",
+			"key": "altTextTooLong",
+			"name": "Alt Text Too Long (>125 chars)",
+			"system": true
+		},
+		{
+			"externalReferenceCode": "EMPTY_ALT_ATTRIBUTES_ON_IMAGES",
+			"key": "emptyAltAttributesOnImages",
+			"name": "Empty Alt Attributes on Images",
+			"system": true
+		},
+		{
 			"externalReferenceCode": "MISSING_ALT_TEXT_ON_IMAGES",
 			"key": "missingAltTextOnImages",
 			"name": "Missing Alt Text on Images",
