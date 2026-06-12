@@ -8,6 +8,11 @@ components:
                     description:
                         "The locale stripped, normalized form of the URL."
                     type: string
+                fullHtml:
+                    description:
+                        "The full parsed HTML body of the page, present when full HTML extraction is enabled on the
+                        crawler."
+                    type: string
                 links:
                     items:
                         type: string
@@ -21,7 +26,8 @@ components:
             type: object
 info:
     description:
-        "Liferay SEO Studio REST API. A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.seo.studio.rest.client', and version '1.0.0'."
+        "Liferay SEO Studio REST API. A Java client JAR is available for use with the group ID 'com.liferay', artifact
+        ID 'com.liferay.seo.studio.rest.client', and version '1.0.0'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html

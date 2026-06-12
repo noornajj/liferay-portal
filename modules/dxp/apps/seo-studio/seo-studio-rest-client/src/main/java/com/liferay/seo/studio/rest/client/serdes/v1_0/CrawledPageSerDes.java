@@ -60,6 +60,20 @@ public class CrawledPageSerDes {
 			sb.append("\"");
 		}
 
+		if (crawledPage.getFullHtml() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"fullHtml\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(crawledPage.getFullHtml()));
+
+			sb.append("\"");
+		}
+
 		if (crawledPage.getLinks() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -135,6 +149,13 @@ public class CrawledPageSerDes {
 				"canonicalURL", String.valueOf(crawledPage.getCanonicalURL()));
 		}
 
+		if (crawledPage.getFullHtml() == null) {
+			map.put("fullHtml", null);
+		}
+		else {
+			map.put("fullHtml", String.valueOf(crawledPage.getFullHtml()));
+		}
+
 		if (crawledPage.getLinks() == null) {
 			map.put("links", null);
 		}
@@ -177,6 +198,9 @@ public class CrawledPageSerDes {
 			if (Objects.equals(jsonParserFieldName, "canonicalURL")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "fullHtml")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "links")) {
 				return false;
 			}
@@ -198,6 +222,11 @@ public class CrawledPageSerDes {
 			if (Objects.equals(jsonParserFieldName, "canonicalURL")) {
 				if (jsonParserFieldValue != null) {
 					crawledPage.setCanonicalURL((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "fullHtml")) {
+				if (jsonParserFieldValue != null) {
+					crawledPage.setFullHtml((String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "links")) {
@@ -297,4 +326,4 @@ public class CrawledPageSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-2123807500
+// LIFERAY-REST-BUILDER-HASH:1637297199

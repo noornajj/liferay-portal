@@ -168,6 +168,7 @@ public abstract class BaseCrawledPageResourceTestCase {
 		CrawledPage crawledPage = randomCrawledPage();
 
 		crawledPage.setCanonicalURL(regex);
+		crawledPage.setFullHtml(regex);
 		crawledPage.setTitle(regex);
 		crawledPage.setUrl(regex);
 
@@ -178,6 +179,7 @@ public abstract class BaseCrawledPageResourceTestCase {
 		crawledPage = CrawledPageSerDes.toDTO(json);
 
 		Assert.assertEquals(regex, crawledPage.getCanonicalURL());
+		Assert.assertEquals(regex, crawledPage.getFullHtml());
 		Assert.assertEquals(regex, crawledPage.getTitle());
 		Assert.assertEquals(regex, crawledPage.getUrl());
 	}
@@ -352,6 +354,14 @@ public abstract class BaseCrawledPageResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("fullHtml", additionalAssertFieldName)) {
+				if (crawledPage.getFullHtml() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("links", additionalAssertFieldName)) {
 				if (crawledPage.getLinks() == null) {
 					valid = false;
@@ -498,6 +508,17 @@ public abstract class BaseCrawledPageResourceTestCase {
 				if (!Objects.deepEquals(
 						crawledPage1.getCanonicalURL(),
 						crawledPage2.getCanonicalURL())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("fullHtml", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						crawledPage1.getFullHtml(),
+						crawledPage2.getFullHtml())) {
 
 					return false;
 				}
@@ -688,6 +709,52 @@ public abstract class BaseCrawledPageResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("fullHtml")) {
+			Object object = crawledPage.getFullHtml();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("links")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -833,6 +900,8 @@ public abstract class BaseCrawledPageResourceTestCase {
 		return new CrawledPage() {
 			{
 				canonicalURL = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				fullHtml = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				title = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				url = StringUtil.toLowerCase(RandomTestUtil.randomString());
@@ -1060,4 +1129,4 @@ public abstract class BaseCrawledPageResourceTestCase {
 		_crawledPageResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:2047907531
+// LIFERAY-REST-BUILDER-HASH:1394338911

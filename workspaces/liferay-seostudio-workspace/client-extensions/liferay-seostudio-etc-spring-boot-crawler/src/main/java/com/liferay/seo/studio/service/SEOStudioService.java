@@ -91,7 +91,8 @@ public class SEOStudioService extends BaseService {
 
 		while (true) {
 			JSONObject hitsJSONObject = new JSONObject(
-				_fetchCrawlHits(seoStudioDomainId, 2000, searchAfter));
+				_fetchCrawlHits(
+					seoStudioDomainId, _CRAWL_HITS_PAGE_SIZE, searchAfter));
 
 			JSONArray hitsJSONArray = hitsJSONObject.optJSONArray("items");
 
@@ -185,6 +186,8 @@ public class SEOStudioService extends BaseService {
 
 		return get(_authorization(), URI.create(url));
 	}
+
+	private static final int _CRAWL_HITS_PAGE_SIZE = 50;
 
 	private static final String _DOMAINS = "/o/seo-studio/domains";
 

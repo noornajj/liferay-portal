@@ -100,6 +100,51 @@ public class CrawledPage implements Serializable {
 	@JsonIgnore
 	private Supplier<String> _canonicalURLSupplier;
 
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The full parsed HTML body of the page, present when full HTML extraction is enabled on the crawler."
+	)
+	public String getFullHtml() {
+		if (_fullHtmlSupplier != null) {
+			fullHtml = _fullHtmlSupplier.get();
+
+			_fullHtmlSupplier = null;
+		}
+
+		return fullHtml;
+	}
+
+	public void setFullHtml(String fullHtml) {
+		this.fullHtml = fullHtml;
+
+		_fullHtmlSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setFullHtml(
+		UnsafeSupplier<String, Exception> fullHtmlUnsafeSupplier) {
+
+		_fullHtmlSupplier = () -> {
+			try {
+				return fullHtmlUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "The full parsed HTML body of the page, present when full HTML extraction is enabled on the crawler."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String fullHtml;
+
+	@JsonIgnore
+	private Supplier<String> _fullHtmlSupplier;
+
 	@io.swagger.v3.oas.annotations.media.Schema
 	public String[] getLinks() {
 		if (_linksSupplier != null) {
@@ -265,6 +310,22 @@ public class CrawledPage implements Serializable {
 			sb.append("\"");
 		}
 
+		String fullHtml = getFullHtml();
+
+		if (fullHtml != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"fullHtml\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(fullHtml));
+
+			sb.append("\"");
+		}
+
 		String[] links = getLinks();
 
 		if (links != null) {
@@ -424,4 +485,4 @@ public class CrawledPage implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1100362058
+// LIFERAY-REST-BUILDER-HASH:-1862702232

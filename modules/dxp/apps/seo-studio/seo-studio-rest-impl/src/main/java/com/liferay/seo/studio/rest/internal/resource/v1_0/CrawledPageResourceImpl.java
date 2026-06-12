@@ -106,6 +106,8 @@ public class CrawledPageResourceImpl extends BaseCrawledPageResourceImpl {
 			CrawledPage crawledPage = new CrawledPage();
 
 			crawledPage.setCanonicalURL(() -> canonicalURL);
+			crawledPage.setFullHtml(
+				() -> GetterUtil.getString(sourcesMap.get("full_html")));
 
 			Object linksObject = sourcesMap.get("links");
 

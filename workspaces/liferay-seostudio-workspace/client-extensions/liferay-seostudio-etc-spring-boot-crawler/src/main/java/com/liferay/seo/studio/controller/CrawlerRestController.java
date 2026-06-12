@@ -8,7 +8,9 @@ package com.liferay.seo.studio.controller;
 import com.liferay.client.extension.util.spring.boot3.BaseRestController;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.seo.studio.crawler.DetectImageAltTextCrawler;
 import com.liferay.seo.studio.crawler.DetectOrphanPagesCrawler;
+import com.liferay.seo.studio.model.CrawlHit;
 import com.liferay.seo.studio.service.SEOStudioService;
 
 import java.io.BufferedReader;
@@ -25,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -215,16 +218,31 @@ public class CrawlerRestController extends BaseRestController {
 			}
 
 			if (exitCode == 0) {
+				long accountEntryId = valuesJSONObject.getLong(
+					"r_accountToSEOStudioScans_accountEntryId");
+
+				List<CrawlHit> crawlHits = _seoStudioService.fetchCrawlHits(
+					seoStudioDomainId);
+
 				try {
 					_detectOrphanPagesCrawler.detect(
-						valuesJSONObject.getLong(
-							"r_accountToSEOStudioScans_accountEntryId"),
-						_seoStudioService.fetchCrawlHits(seoStudioDomainId),
-						canonicalHostname, "orphan_page", seoStudioScanId);
+						accountEntryId, crawlHits, canonicalHostname,
+						"orphan_page", seoStudioScanId);
 				}
 				catch (Exception exception) {
 					_log.error(
 						"Orphan page detection failed for scan " +
+							seoStudioScanId,
+						exception);
+				}
+
+				try {
+					_detectImageAltTextCrawler.detect(
+						seoStudioScanId, accountEntryId, crawlHits);
+				}
+				catch (Exception exception) {
+					_log.error(
+						"Image alt text detection failed for scan " +
 							seoStudioScanId,
 						exception);
 				}
@@ -380,6 +398,9 @@ public class CrawlerRestController extends BaseRestController {
 
 	@Value("${liferay.seo.studio.crawler.url.queue.size.limit}")
 	private int _crawlerURLQueueSizeLimit;
+
+	@Autowired
+	private DetectImageAltTextCrawler _detectImageAltTextCrawler;
 
 	@Autowired
 	private DetectOrphanPagesCrawler _detectOrphanPagesCrawler;

@@ -46,6 +46,27 @@ public class CrawledPage implements Cloneable, Serializable {
 
 	protected String canonicalURL;
 
+	public String getFullHtml() {
+		return fullHtml;
+	}
+
+	public void setFullHtml(String fullHtml) {
+		this.fullHtml = fullHtml;
+	}
+
+	public void setFullHtml(
+		UnsafeSupplier<String, Exception> fullHtmlUnsafeSupplier) {
+
+		try {
+			fullHtml = fullHtmlUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String fullHtml;
+
 	public String[] getLinks() {
 		return links;
 	}
@@ -139,4 +160,4 @@ public class CrawledPage implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:806294681
+// LIFERAY-REST-BUILDER-HASH:1746089138

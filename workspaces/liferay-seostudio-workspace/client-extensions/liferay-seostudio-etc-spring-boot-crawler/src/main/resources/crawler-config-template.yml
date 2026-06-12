@@ -13,6 +13,7 @@ elasticsearch:
     pipeline: [$CRAWLER_ELASTICSEARCH_PIPELINE$]
     pipeline_enabled: true
     port: [$CRAWLER_ELASTICSEARCH_PORT$]
+full_html_extraction_enabled: true
 loopback_allowed: [$CRAWLER_LOOPBACK_ALLOWED$]
 max_crawl_depth: [$CRAWLER_MAX_CRAWL_DEPTH$]
 max_duration: [$CRAWLER_MAX_DURATION$]
