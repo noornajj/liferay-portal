@@ -11,6 +11,7 @@ import React, {useEffect, useState} from 'react';
 
 import AuthorCellRenderer from './cell_renderers/AuthorCellRenderer';
 import TitleCellRenderer from './cell_renderers/TitleCellRenderer';
+import TypeCellRenderer from './cell_renderers/TypeCellRenderer';
 import {getInsightType} from './services/InsightTypeService';
 import {InsightType} from './types/InsightType';
 
@@ -110,6 +111,11 @@ export default function InsightDetailView({
 							{
 								component: TitleCellRenderer,
 								name: 'titleCellRenderer',
+								type: 'internal',
+							},
+							{
+								component: TypeCellRenderer,
+								name: 'typeCellRenderer',
 								type: 'internal',
 							},
 						],

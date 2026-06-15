@@ -47,7 +47,11 @@ public class AffectedPagesSectionSEOStudioTableFDSView
 				"authorCellRenderer")
 		).add(
 			"r_seoStudioPageToSEOStudioScanInsights_seoStudioPage.type", "type",
-			fdsTableSchemaField -> fdsTableSchemaField.setSortable(true)
+			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
+				"typeCellRenderer"
+			).setSortable(
+				true
+			)
 		).add(
 			"r_seoStudioPageToSEOStudioScanInsights_seoStudioPage.pageURL",
 			"friendly-url"
