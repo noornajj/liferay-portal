@@ -12,9 +12,11 @@ export default function InsightNameCellRenderer({
 	value,
 }: {
 	itemData: {externalReferenceCode: string};
-	value: string;
+	value: string | {key: string; name: string};
 }) {
 	const {selectInsight} = useContext(InsightsViewContext);
+
+	const label = value && typeof value === 'object' ? value.name : value;
 
 	return (
 		<span
@@ -25,7 +27,7 @@ export default function InsightNameCellRenderer({
 			}}
 			style={{cursor: 'pointer', textDecoration: 'underline'}}
 		>
-			{value}
+			{label}
 		</span>
 	);
 }
