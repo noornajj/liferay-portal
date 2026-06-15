@@ -124,6 +124,8 @@ public class ImageAltTextDetectionCrawler extends BaseDetectionCrawler {
 		).put(
 			"category", "images"
 		).put(
+			"classification", "opportunity"
+		).put(
 			"description",
 			StringBundler.concat(
 				"One or more alt attributes exceed 125 characters. Screen ",
@@ -133,12 +135,16 @@ public class ImageAltTextDetectionCrawler extends BaseDetectionCrawler {
 			"insightType", "alt_text_too_long"
 		).put(
 			"name", "altTextTooLong"
+		).put(
+			"severity", "low"
 		);
 
 	private static final JSONObject _EMPTY_ALT_ATTRIBUTES_JSON_OBJECT =
 		new JSONObject(
 		).put(
 			"category", "images"
+		).put(
+			"classification", "opportunity"
 		).put(
 			"description",
 			StringBundler.concat(
@@ -150,6 +156,8 @@ public class ImageAltTextDetectionCrawler extends BaseDetectionCrawler {
 			"insightType", "empty_alt_attributes"
 		).put(
 			"name", "emptyAltAttributesOnImages"
+		).put(
+			"severity", "medium"
 		);
 
 	private static final int _MAX_ALT_LENGTH = 125;
@@ -158,6 +166,8 @@ public class ImageAltTextDetectionCrawler extends BaseDetectionCrawler {
 		new JSONObject(
 		).put(
 			"category", "images"
+		).put(
+			"classification", "problem"
 		).put(
 			"description",
 			StringBundler.concat(
@@ -170,6 +180,8 @@ public class ImageAltTextDetectionCrawler extends BaseDetectionCrawler {
 			"insightType", "missing_alt_text"
 		).put(
 			"name", "missingAltTextOnImages"
+		).put(
+			"severity", "high"
 		);
 
 	private static final Log _log = LogFactory.getLog(

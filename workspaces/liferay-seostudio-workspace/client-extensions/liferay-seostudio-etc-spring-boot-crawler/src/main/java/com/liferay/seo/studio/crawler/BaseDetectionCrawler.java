@@ -113,8 +113,8 @@ public abstract class BaseDetectionCrawler {
 			seoStudioScanId, accountEntryId, definitionJSONObject);
 
 		_createScanInsightsBatch(
-			seoStudioScanId, accountEntryId, seoStudioInsightTypeId, pageURLs,
-			pageIdsByURLMap);
+			definitionJSONObject, seoStudioScanId, accountEntryId,
+			seoStudioInsightTypeId, pageURLs, pageIdsByURLMap);
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
@@ -150,6 +150,8 @@ public abstract class BaseDetectionCrawler {
 			"r_seoStudioScanToSEOStudioInsightTypes_seoStudioScanId",
 			seoStudioScanId
 		).put(
+			"severity", definitionJSONObject.getString("severity")
+		).put(
 			"whyItMatters", definitionJSONObject.optString("whyItMatters")
 		);
 
@@ -180,9 +182,9 @@ public abstract class BaseDetectionCrawler {
 	}
 
 	private void _createScanInsightsBatch(
-			long seoStudioScanId, long accountEntryId,
-			long seoStudioInsightTypeId, List<String> pageURLs,
-			Map<String, Long> pageIdsByURLMap)
+			JSONObject definitionJSONObject, long seoStudioScanId,
+			long accountEntryId, long seoStudioInsightTypeId,
+			List<String> pageURLs, Map<String, Long> pageIdsByURLMap)
 		throws Exception {
 
 		String detectedDate = Instant.now(
@@ -211,8 +213,9 @@ public abstract class BaseDetectionCrawler {
 
 				scanInsightsJSONArray.put(
 					_toScanInsightJSONObject(
-						accountEntryId, detectedDate, seoStudioInsightTypeId,
-						seoStudioPageId, seoStudioScanId));
+						definitionJSONObject, accountEntryId, detectedDate,
+						seoStudioInsightTypeId, seoStudioPageId,
+						seoStudioScanId));
 			}
 
 			if (scanInsightsJSONArray.length() == 0) {
@@ -263,18 +266,23 @@ public abstract class BaseDetectionCrawler {
 			"r_accountToSEOStudioPages_accountEntryId", accountEntryId
 		).put(
 			"r_seoStudioScanToSEOStudioPages_seoStudioScanId", seoStudioScanId
+		).put(
+			"type", "page"
 		);
 
 		return pageJSONObject;
 	}
 
 	private JSONObject _toScanInsightJSONObject(
-		long accountEntryId, String detectedDate, long seoStudioInsightTypeId,
-		long seoStudioPageId, long seoStudioScanId) {
+		JSONObject definitionJSONObject, long accountEntryId,
+		String detectedDate, long seoStudioInsightTypeId, long seoStudioPageId,
+		long seoStudioScanId) {
 
 		JSONObject scanInsightJSONObject = new JSONObject();
 
 		scanInsightJSONObject.put(
+			"classification", definitionJSONObject.getString("classification")
+		).put(
 			"detectedDate", detectedDate
 		).put(
 			"r_accountToSEOStudioScanInsights_accountEntryId", accountEntryId
@@ -287,6 +295,8 @@ public abstract class BaseDetectionCrawler {
 		).put(
 			"r_seoStudioScanToSEOStudioScanInsights_seoStudioScanId",
 			seoStudioScanId
+		).put(
+			"state", "open"
 		);
 
 		return scanInsightJSONObject;

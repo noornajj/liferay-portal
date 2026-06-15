@@ -244,6 +244,8 @@ public class BrokenImagesDetectionCrawler extends BaseDetectionCrawler {
 		).put(
 			"category", "images"
 		).put(
+			"classification", "problem"
+		).put(
 			"description",
 			StringBundler.concat(
 				"One or more <img> tags on this page point to URLs that ",
@@ -254,6 +256,8 @@ public class BrokenImagesDetectionCrawler extends BaseDetectionCrawler {
 			"insightType", "broken_image_urls"
 		).put(
 			"name", "brokenImageURLs"
+		).put(
+			"severity", "high"
 		);
 
 	private static final int _MAX_CONCURRENCY = 32;

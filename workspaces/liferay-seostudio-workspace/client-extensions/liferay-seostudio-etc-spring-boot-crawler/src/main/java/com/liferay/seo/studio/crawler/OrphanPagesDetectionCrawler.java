@@ -94,9 +94,13 @@ public class OrphanPagesDetectionCrawler extends BaseDetectionCrawler {
 	).put(
 		"category", "linksAndURLs"
 	).put(
+		"classification", "informational"
+	).put(
 		"insightType", "orphan_page"
 	).put(
 		"name", "orphanPages"
+	).put(
+		"severity", "high"
 	);
 
 	private static final Log _log = LogFactory.getLog(
