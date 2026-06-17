@@ -64,7 +64,8 @@ public class ViewOnPageInsightDetailsDisplayContext {
 		return StringBundler.concat(
 			"/o/seo-studio/insight-types/by-external-reference-code/",
 			URLCodec.encodeURL(_getObjectEntryExternalReferenceCode(), true),
-			"/seoStudioInsightTypeToScanInsights?nestedFields=",
+			"/seoStudioInsightTypeToScanInsights?filter=",
+			URLCodec.encodeURL("state eq 1", true), "&nestedFields=",
 			URLCodec.encodeURL(
 				"r_seoStudioPageToSEOStudioScanInsights_seoStudioPage", true));
 	}
