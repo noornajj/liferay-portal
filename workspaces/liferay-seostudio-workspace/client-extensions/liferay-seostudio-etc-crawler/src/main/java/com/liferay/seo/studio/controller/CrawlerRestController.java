@@ -56,6 +56,9 @@ public class CrawlerRestController extends BaseRestController {
 		long seoStudioScanId = objectEntryJSONObject.getLong("objectEntryId");
 
 		try {
+			_seoStudioService.patchScan(
+				null, seoStudioScanId, SEOStudioScanConstants.STATE_RUNNING);
+
 			JSONObject valuesJSONObject = objectEntryJSONObject.getJSONObject(
 				"values");
 
@@ -111,9 +114,6 @@ public class CrawlerRestController extends BaseRestController {
 						seoStudioScanId, SEOStudioScanConstants.STATE_FAILED));
 			}
 
-			_seoStudioService.patchScan(
-				null, seoStudioScanId, SEOStudioScanConstants.STATE_RUNNING);
-
 			JSONObject scopeConfigJSONObject = new JSONObject(
 				valuesJSONObject.getString("scopeConfig"));
 
@@ -121,8 +121,11 @@ public class CrawlerRestController extends BaseRestController {
 				valuesJSONObject.getLong(
 					"r_accountToSEOStudioScans_accountEntryId"),
 				canonicalDomainURL,
-				scopeConfigJSONObject.getInt("maxCrawlDepth"),
-				scopeConfigJSONObject.getInt("maxDuration"),
+				scopeConfigJSONObject.optString("excludedPaths"),
+				scopeConfigJSONObject.optString("includedPaths"),
+				scopeConfigJSONObject.optInt("maxCrawlDepth", 3),
+				scopeConfigJSONObject.optInt("maxDuration", 300),
+				scopeConfigJSONObject.optInt("maxPagesPerScan", 100),
 				_seoStudioService.toIndexName(seoStudioDomainId), sitemapURL);
 
 			ObjectMeta objectMeta = job.getMetadata();

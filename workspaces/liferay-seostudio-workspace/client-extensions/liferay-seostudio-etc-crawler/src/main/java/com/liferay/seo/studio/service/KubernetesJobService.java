@@ -34,8 +34,9 @@ import org.springframework.stereotype.Service;
 public class KubernetesJobService {
 
 	public Job createJob(
-		long accountEntryId, String domainURL, int maxCrawlDepth,
-		int maxDuration, String outputIndex, String sitemapURL) {
+		long accountEntryId, String domainURL, String excludedPaths,
+		String includedPaths, int maxCrawlDepth, int maxDuration, int maxPages,
+		String outputIndex, String sitemapURL) {
 
 		Job job = _kubernetesClient.batch(
 		).v1(
@@ -63,6 +64,8 @@ public class KubernetesJobService {
 				_createEnvVar(
 					"ACCOUNT_ENTRY_ID", String.valueOf(accountEntryId)),
 				_createEnvVar("CRAWLER_DOMAIN_URL", domainURL),
+				_createEnvVar("CRAWLER_EXCLUDED_PATHS", excludedPaths),
+				_createEnvVar("CRAWLER_INCLUDED_PATHS", includedPaths),
 				_createEnvVar(
 					"CRAWLER_LOOPBACK_ALLOWED",
 					String.valueOf(_localNetworkAllowed)),
@@ -70,6 +73,7 @@ public class KubernetesJobService {
 					"CRAWLER_MAX_CRAWL_DEPTH", String.valueOf(maxCrawlDepth)),
 				_createEnvVar(
 					"CRAWLER_MAX_DURATION", String.valueOf(maxDuration)),
+				_createEnvVar("CRAWLER_MAX_PAGES", String.valueOf(maxPages)),
 				_createEnvVar("CRAWLER_OUTPUT_INDEX", outputIndex),
 				_createEnvVar(
 					"CRAWLER_PRIVATE_NETWORKS_ALLOWED",
