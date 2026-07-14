@@ -168,6 +168,7 @@ public abstract class BaseCrawlHitResourceTestCase {
 		CrawlHit crawlHit = randomCrawlHit();
 
 		crawlHit.setCanonicalUrl(regex);
+		crawlHit.setMetaDescription(regex);
 		crawlHit.setTitle(regex);
 		crawlHit.setUrl(regex);
 
@@ -178,6 +179,7 @@ public abstract class BaseCrawlHitResourceTestCase {
 		crawlHit = CrawlHitSerDes.toDTO(json);
 
 		Assert.assertEquals(regex, crawlHit.getCanonicalUrl());
+		Assert.assertEquals(regex, crawlHit.getMetaDescription());
 		Assert.assertEquals(regex, crawlHit.getTitle());
 		Assert.assertEquals(regex, crawlHit.getUrl());
 	}
@@ -352,6 +354,14 @@ public abstract class BaseCrawlHitResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("metaDescription", additionalAssertFieldName)) {
+				if (crawlHit.getMetaDescription() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("title", additionalAssertFieldName)) {
 				if (crawlHit.getTitle() == null) {
 					valid = false;
@@ -497,6 +507,17 @@ public abstract class BaseCrawlHitResourceTestCase {
 			if (Objects.equals("links", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						crawlHit1.getLinks(), crawlHit2.getLinks())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("metaDescription", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						crawlHit1.getMetaDescription(),
+						crawlHit2.getMetaDescription())) {
 
 					return false;
 				}
@@ -682,6 +703,52 @@ public abstract class BaseCrawlHitResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("metaDescription")) {
+			Object object = crawlHit.getMetaDescription();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("title")) {
 			Object object = crawlHit.getTitle();
 
@@ -822,6 +889,8 @@ public abstract class BaseCrawlHitResourceTestCase {
 		return new CrawlHit() {
 			{
 				canonicalUrl = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				metaDescription = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				title = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				url = StringUtil.toLowerCase(RandomTestUtil.randomString());
@@ -1049,4 +1118,4 @@ public abstract class BaseCrawlHitResourceTestCase {
 		_crawlHitResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1124727245
+// LIFERAY-REST-BUILDER-HASH:-1909406793
