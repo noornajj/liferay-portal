@@ -164,6 +164,8 @@ public class CrawlHitResourceImpl extends BaseCrawlHitResourceImpl {
 
 		crawlHit.setCanonicalUrl(() -> _toCanonicalURL(url));
 		crawlHit.setLinks(() -> _getLinks(sourcesMap));
+		crawlHit.setMetaDescription(
+			() -> GetterUtil.getString(sourcesMap.get("meta_description")));
 		crawlHit.setTitle(() -> GetterUtil.getString(sourcesMap.get("title")));
 		crawlHit.setUrl(() -> url);
 
