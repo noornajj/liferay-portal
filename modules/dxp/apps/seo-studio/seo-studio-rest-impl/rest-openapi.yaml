@@ -8,6 +8,8 @@ components:
                     items:
                         type: string
                     type: array
+                metaDescription:
+                    type: string
                 title:
                     type: string
                 url:
