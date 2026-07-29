@@ -67,6 +67,27 @@ public class CrawlHit implements Cloneable, Serializable {
 
 	protected String[] links;
 
+	public String getMetaDescription() {
+		return metaDescription;
+	}
+
+	public void setMetaDescription(String metaDescription) {
+		this.metaDescription = metaDescription;
+	}
+
+	public void setMetaDescription(
+		UnsafeSupplier<String, Exception> metaDescriptionUnsafeSupplier) {
+
+		try {
+			metaDescription = metaDescriptionUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String metaDescription;
+
 	public String getTitle() {
 		return title;
 	}
@@ -139,4 +160,4 @@ public class CrawlHit implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-517948860
+// LIFERAY-REST-BUILDER-HASH:-1812531914

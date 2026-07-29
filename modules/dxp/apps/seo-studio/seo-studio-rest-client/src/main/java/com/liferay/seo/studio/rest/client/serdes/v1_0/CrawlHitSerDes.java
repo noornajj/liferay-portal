@@ -78,6 +78,20 @@ public class CrawlHitSerDes {
 			sb.append("]");
 		}
 
+		if (crawlHit.getMetaDescription() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"metaDescription\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(crawlHit.getMetaDescription()));
+
+			sb.append("\"");
+		}
+
 		if (crawlHit.getTitle() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -138,6 +152,15 @@ public class CrawlHitSerDes {
 			map.put("links", String.valueOf(crawlHit.getLinks()));
 		}
 
+		if (crawlHit.getMetaDescription() == null) {
+			map.put("metaDescription", null);
+		}
+		else {
+			map.put(
+				"metaDescription",
+				String.valueOf(crawlHit.getMetaDescription()));
+		}
+
 		if (crawlHit.getTitle() == null) {
 			map.put("title", null);
 		}
@@ -175,6 +198,9 @@ public class CrawlHitSerDes {
 			else if (Objects.equals(jsonParserFieldName, "links")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "metaDescription")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "title")) {
 				return false;
 			}
@@ -199,6 +225,11 @@ public class CrawlHitSerDes {
 				if (jsonParserFieldValue != null) {
 					crawlHit.setLinks(
 						toStrings((Object[])jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "metaDescription")) {
+				if (jsonParserFieldValue != null) {
+					crawlHit.setMetaDescription((String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "title")) {
@@ -292,4 +323,4 @@ public class CrawlHitSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:751220138
+// LIFERAY-REST-BUILDER-HASH:-68531772

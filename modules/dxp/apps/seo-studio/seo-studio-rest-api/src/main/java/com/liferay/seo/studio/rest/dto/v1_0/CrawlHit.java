@@ -132,6 +132,47 @@ public class CrawlHit implements Serializable {
 	private Supplier<String[]> _linksSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public String getMetaDescription() {
+		if (_metaDescriptionSupplier != null) {
+			metaDescription = _metaDescriptionSupplier.get();
+
+			_metaDescriptionSupplier = null;
+		}
+
+		return metaDescription;
+	}
+
+	public void setMetaDescription(String metaDescription) {
+		this.metaDescription = metaDescription;
+
+		_metaDescriptionSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setMetaDescription(
+		UnsafeSupplier<String, Exception> metaDescriptionUnsafeSupplier) {
+
+		_metaDescriptionSupplier = () -> {
+			try {
+				return metaDescriptionUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String metaDescription;
+
+	@JsonIgnore
+	private Supplier<String> _metaDescriptionSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	public String getTitle() {
 		if (_titleSupplier != null) {
 			title = _titleSupplier.get();
@@ -281,6 +322,22 @@ public class CrawlHit implements Serializable {
 			sb.append("]");
 		}
 
+		String metaDescription = getMetaDescription();
+
+		if (metaDescription != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"metaDescription\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(metaDescription));
+
+			sb.append("\"");
+		}
+
 		String title = getTitle();
 
 		if (title != null) {
@@ -414,4 +471,4 @@ public class CrawlHit implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1561278114
+// LIFERAY-REST-BUILDER-HASH:-84072130
