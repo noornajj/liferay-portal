@@ -29,6 +29,8 @@ import java.net.http.HttpResponse;
 
 import java.time.Duration;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -181,6 +183,152 @@ public class CrawlerRestController extends BaseRestController {
 		}
 	}
 
+	private List<JSONObject> _detectMetadataIssues(List<CrawlHit> crawlHits) {
+		Set<String> missingMetaDescriptionPageURLs = new LinkedHashSet<>();
+		Set<String> missingTitleTagPageURLs = new LinkedHashSet<>();
+
+		for (CrawlHit crawlHit : crawlHits) {
+			String canonicalURL = crawlHit.getCanonicalURL();
+
+			if (Validator.isNull(canonicalURL)) {
+				continue;
+			}
+
+			if (Validator.isNull(crawlHit.getMetaDescription())) {
+				missingMetaDescriptionPageURLs.add(canonicalURL);
+			}
+
+			if (Validator.isNull(crawlHit.getTitle())) {
+				missingTitleTagPageURLs.add(canonicalURL);
+			}
+		}
+
+		JSONObject missingMetaDescriptionInsightJSONObject = new JSONObject(
+		).put(
+			"category", "metadata"
+		).put(
+			"classification", "opportunity"
+		).put(
+			"description",
+			StringBundler.concat(
+				"One or more pages are missing a meta description or have an ",
+				"empty one. Search engines use it for the results snippet; ",
+				"without it they auto-generate one, reducing control over how ",
+				"the page is presented and its click-through rate.")
+		).put(
+			"fixHint",
+			StringBundler.concat(
+				"Add a unique meta description of roughly 150 to 160 ",
+				"characters that summarizes the page and includes its primary ",
+				"keywords, so search engines show it verbatim in the results ",
+				"snippet.")
+		).put(
+			"name", "missingMetaDescription"
+		).put(
+			"pageURLs", missingMetaDescriptionPageURLs
+		).put(
+			"severity", "2"
+		);
+
+		JSONObject missingTitleTagInsightJSONObject = new JSONObject(
+		).put(
+			"category", "metadata"
+		).put(
+			"classification", "problem"
+		).put(
+			"description",
+			StringBundler.concat(
+				"One or more pages are missing a <title> tag or have an empty ",
+				"one. The title tag is the primary label search engines show ",
+				"in results and the strongest on-page signal for what a page ",
+				"is about; without it, rankings and click-through suffer.")
+		).put(
+			"fixHint",
+			StringBundler.concat(
+				"Add a concise, unique <title> of roughly 50 to 60 characters ",
+				"that leads with the page's primary keyword and reflects its ",
+				"actual content.")
+		).put(
+			"name", "missingOrEmptyTitleTag"
+		).put(
+			"pageURLs", missingTitleTagPageURLs
+		).put(
+			"severity", "3"
+		);
+
+		return Arrays.asList(
+			missingMetaDescriptionInsightJSONObject,
+			missingTitleTagInsightJSONObject);
+	}
+
+	private List<JSONObject> _detectOrphanPages(
+		List<CrawlHit> crawlHits, String domainURL) {
+
+		Set<String> canonicalURLs = new LinkedHashSet<>();
+		Set<String> linkedURLs = new HashSet<>();
+
+		for (CrawlHit crawlHit : crawlHits) {
+			String canonicalURL = crawlHit.getCanonicalURL();
+
+			if (Validator.isNull(canonicalURL)) {
+				continue;
+			}
+
+			canonicalURLs.add(canonicalURL);
+
+			for (String linkedURL : crawlHit.getLinks()) {
+				if (Validator.isNotNull(linkedURL) &&
+					!linkedURL.equals(canonicalURL)) {
+
+					linkedURLs.add(linkedURL);
+				}
+			}
+		}
+
+		List<String> pageURLs = TransformUtil.transform(
+			canonicalURLs,
+			canonicalURL -> {
+				if (canonicalURL.equals(domainURL) ||
+					linkedURLs.contains(canonicalURL)) {
+
+					return null;
+				}
+
+				return canonicalURL;
+			});
+
+		JSONObject insightJSONObject = new JSONObject(
+		).put(
+			"category", "linksAndURLs"
+		).put(
+			"classification", "problem"
+		).put(
+			"description",
+			StringBundler.concat(
+				"This page is published and indexable but has zero internal ",
+				"links pointing to it. Orphan pages are nearly invisible to ",
+				"both users browsing the site and crawlers building the link ",
+				"graph. Even when they are listed in a sitemap, they collect ",
+				"very little ranking authority.")
+		).put(
+			"fixHint",
+			StringBundler.concat(
+				"Identify 2-5 topically related pages and add contextual ",
+				"internal links pointing to the orphan, with descriptive ",
+				"anchor text. If no relevant linking context exists anywhere ",
+				"on the site, that is a signal the page may not belong in the ",
+				"public site at all.")
+		).put(
+			"name", "orphanPages"
+		).put(
+			"pageURLs", pageURLs
+		).put(
+			"severity", "2"
+		);
+
+		return Arrays.asList(insightJSONObject);
+	}
+
 	private boolean _isSitemapReachable(String sitemapURL) {
 		try {
 			HttpResponse<String> httpResponse = _httpClient.send(
@@ -279,84 +427,18 @@ public class CrawlerRestController extends BaseRestController {
 				return;
 			}
 
-			Set<String> canonicalURLs = new LinkedHashSet<>();
+			long accountEntryId = seoStudioScanJSONObject.getLong(
+				"r_accountToSEOStudioScans_accountEntryId");
 			String domainURL = _seoStudioService.toDomainURL(
 				_seoStudioService.toCrawlURI(
 					seoStudioDomainJSONObject.getString("hostname")));
-			Set<String> linkedURLs = new HashSet<>();
 
-			for (CrawlHit crawlHit : crawlHits) {
-				String canonicalURL = crawlHit.getCanonicalURL();
+			List<JSONObject> insightJSONObjects = new ArrayList<>();
 
-				if (Validator.isNull(canonicalURL)) {
-					continue;
-				}
+			insightJSONObjects.addAll(_detectMetadataIssues(crawlHits));
+			insightJSONObjects.addAll(_detectOrphanPages(crawlHits, domainURL));
 
-				canonicalURLs.add(canonicalURL);
-
-				for (String linkedURL : crawlHit.getLinks()) {
-					if (Validator.isNotNull(linkedURL) &&
-						!linkedURL.equals(canonicalURL)) {
-
-						linkedURLs.add(linkedURL);
-					}
-				}
-			}
-
-			List<String> pageURLs = TransformUtil.transform(
-				canonicalURLs,
-				canonicalURL -> {
-					if (canonicalURL.equals(domainURL) ||
-						linkedURLs.contains(canonicalURL)) {
-
-						return null;
-					}
-
-					return canonicalURL;
-				});
-
-			if (ListUtil.isEmpty(pageURLs)) {
-				if (_log.isInfoEnabled()) {
-					_log.info(
-						"No orphan pages were found for SEO Studio scan ID " +
-							seoStudioScanId);
-				}
-			}
-			else {
-				JSONObject insightJSONObject = new JSONObject(
-				).put(
-					"category", "linksAndURLs"
-				).put(
-					"classification", "problem"
-				).put(
-					"description",
-					StringBundler.concat(
-						"This page is published and indexable but has zero ",
-						"internal links pointing to it. Orphan pages are ",
-						"nearly invisible to both users browsing the site and ",
-						"crawlers building the link graph. Even when they are ",
-						"listed in a sitemap, they collect very little ",
-						"ranking authority.")
-				).put(
-					"fixHint",
-					StringBundler.concat(
-						"Identify 2-5 topically related pages and add ",
-						"contextual internal links pointing to the orphan, ",
-						"with descriptive anchor text. If no relevant linking ",
-						"context exists anywhere on the site, that is a ",
-						"signal the page may not belong in the public site at ",
-						"all.")
-				).put(
-					"name", "orphanPages"
-				).put(
-					"pageURLs", pageURLs
-				).put(
-					"severity", "2"
-				);
-
-				long accountEntryId = seoStudioScanJSONObject.getLong(
-					"r_accountToSEOStudioScans_accountEntryId");
-
+			for (JSONObject insightJSONObject : insightJSONObjects) {
 				_seoStudioService.postSEOStudioScanInsightsBatch(
 					accountEntryId, insightJSONObject, seoStudioScanId);
 			}
