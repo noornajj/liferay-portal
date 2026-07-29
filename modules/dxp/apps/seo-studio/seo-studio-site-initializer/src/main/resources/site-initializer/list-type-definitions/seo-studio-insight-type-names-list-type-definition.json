@@ -2,6 +2,18 @@
 	"externalReferenceCode": "L_SEO_STUDIO_INSIGHT_TYPE_NAMES",
 	"listTypeEntries": [
 		{
+			"externalReferenceCode": "MISSING_META_DESCRIPTION",
+			"key": "missingMetaDescription",
+			"name": "Missing Meta Description",
+			"system": true
+		},
+		{
+			"externalReferenceCode": "MISSING_OR_EMPTY_TITLE_TAG",
+			"key": "missingOrEmptyTitleTag",
+			"name": "Missing or Empty Title Tag",
+			"system": true
+		},
+		{
 			"externalReferenceCode": "ORPHAN_PAGES",
 			"key": "orphanPages",
 			"name": "Orphan Pages",
